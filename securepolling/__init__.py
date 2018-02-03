@@ -44,7 +44,8 @@ def _user_send_blinded_key(registrar, identity):
 
 def _user_signature_valid(registrar, identity):
     '''
-    Returns true if the locally-stored registrar signature is valid. Returns false if the registrar signature is expired or not present.
+    Return true if the locally-stored registrar signature is valid.
+    Return false if the registrar signature is expired or not present.
     '''
 
 def _user_get_signature(registrar, identity):
@@ -56,21 +57,24 @@ def _user_get_signature(registrar, identity):
     by the registrar, it will return false.
     '''
 
+def user_screed_add(registrar, identity, *messages):
+    '''
+    Add messages to the local screed.
+    '''
 
+def user_screed_remove(registrar, identity, *messages):
+    '''
+    Remove messages from the local screed.
+    '''
 
+def user_screed_list(registrar, identity):
+    '''
+    List the current messages in the local screed, along with their indexes.
+    '''
 
-### ```user.screed.append(msg, cb)```
-
-Add a message to the local screed.
-
-### ```user.screed.remove(index, cb)```
-
-Remove a message from the local screed using the given index.
-
-### ```user.screed.list(cb)```
-
-List the current messages in the local screed, along with their indexes.
-
-### ```user.uploadScreed(cb)```
-
-Uploads the user's local screed to the registrar. If there is no valid signature for the user's registrar, or the server refuses to accept, or can't be reached, will return an error.
+def user_screed_upload(registrar, identity):
+    '''
+    Upload the user's local screed to the registrar. If there is no valid
+    signature for the user's registrar, or the server refuses to accept, or
+    can't be reached, raise an error.
+    '''
