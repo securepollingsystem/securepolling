@@ -1,5 +1,14 @@
+from sqlite3 import connect
 import datetime
 from .log import registrar as log_registrar
+
+def Db(x):
+    con = connect(x)
+    cur = con.cursor()
+    cur.execute('create table if not exists slots (start datetime, stop datetime, identity text not null)')
+    cur.execute('create table if not exists registrar (identity text primary key, date datetime)')
+    cur.close()
+    return con
 
 def Natural(x):
     y = int(x)
@@ -9,7 +18,7 @@ def Natural(x):
         raise ValueError('Not a natural number: %d' % y)
 
 class Datetime(object):
-    _format = '%Y-%m-%dT%H:%M'
+    _format = '%Y-%m-%dT%H:%M:%S'
     @staticmethod
     def loads(x):
         return datetime.datetime.strptime(x, Datetime._format)
@@ -18,32 +27,41 @@ class Datetime(object):
         return datetime.datetime.strftime(x, Datetime._format)
 
 
-def add_slot(log: log_registrar, start: Datetime, stop: Datetime, minutes: Natural=None):
+def add_slot(db: Db, start: Datetime, stop: Datetime, length: Natural=None):
     '''
     Add appointment slots.
 
-    :param start: Start datetime, in %Y-%m-%dT%H:%M format
-    :param end: End datetime, in %Y-%m-%dT%H:%M format
-    :param minutes: If set, break the range into slots of this many minutes
+    :param start: Start datetime, in %Y-%m-%dT%H:%M:%S format
+    :param end: End datetime, in %Y-%m-%dT%H:%M:%S format
+    :param length: If set, break the range into slots of this many seconds
         each. If not set, treat the whole range as one time slot.
     '''
     if not start < end:
         raise ValueError('Start must be before end.')
 
-    for key, value in log.scan('', Datetime.dumps(stop)):
-        slot_start, slot_stop = map(Datetime.loads, key.split('!'))
-        if start < slot_start < end or start < slot_end < end or \
-                slot_start < start < slot_end or slot_start < end < slot_end:
-            raise ValueError('New slots overlap with existing slots.')
+    cur = db.cursor()
+    cur.execute('''\
+SELECT count(*) FROM slots
+WHERE start < slot_start < end
+   OR start < slot_end < end
+   OR slot_start < start < slot_end
+   OR slot_start < end < slot_end;''')
+    count, = cur.fetchone()
+    if count:
+        raise ValueError('New slots overlap with existing slots.')
+    cur.close()
 
     if not length:
         length = stop - start
 
-    for left in range(int(start.timestamp()), int(stop.timestamp()), length*60):
-        slot_start = datetime.datetime.fromtimestamp(left)
-        slot_end = slot_start + (length - 1) * 60
-        key = '%s!%s' % (Datetime.dumps(slot_start), Datetime.dumps(slot_end))
-        log.upsert(key, )
+    with db:
+        cur = db.cursor()
+        for left in range(int(start.timestamp()), int(stop.timestamp()), length):
+            slot_start = datetime.datetime.fromtimestamp(left)
+            slot_end = slot_start + (length - 1)
+            cur.execute("insert into slots (start, stop, identity) values (?, ?, '')",
+                        slot_start, slot_end)
+        cur.close()
 
 def confirm_eligibility(identity):
     '''
