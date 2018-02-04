@@ -1,5 +1,4 @@
 from sqlite3 import connect
-from .log import Log
 from . import screed_host
 
 def _db(path):
@@ -11,15 +10,14 @@ def _db(path):
     cur.close()
     return con
 
-def _update_web(log: tally_log, screed_host):
+def _update_web(db, screed_host):
     raise NotImplementedError
 
 def update(db: _db, registrar, start_time=None, public_key=None):
     '''
     :param db: Sqlite3 database
     '''
-    log_screed = Log(db, 'screed')
-    for screed in screed_host.query(log_screed, registrar, start_time=start_time, public_key=public_key):
+    for screed in screed_host.query(db, registrar, start_time=start_time, public_key=public_key):
         poller = screed['poller']
         with db:
             cur = db.cursor()
