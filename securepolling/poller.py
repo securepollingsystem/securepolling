@@ -1,8 +1,11 @@
 from logging import getLogger
 from os import makedirs, environ
 from pathlib import Path
-from json import load, dump
+from json import load, dump as _dump
+from functools import partial
 from sys import stdout
+
+dump = partial(_dump, indent=2)
 
 CONFIG = Path(environ['HOME']) / '.securepolling.json'
 logger = getLogger(__name__)
@@ -30,7 +33,7 @@ def create(registrar, identity, config=CONFIG, *, force=False):
         fp = stdout
     else:
         p = Path(config)
-        makedirs(p.parent)
+        makedirs(p.parent, exist_ok=True)
         fp = p.open('w')
     dump(data, fp)
     fp.close()
@@ -87,7 +90,11 @@ def screed_add(*messages, config: Path=CONFIG):
     '''
     with config.open() as fp:
         data = load(fp)
-    data['screed'].extend(messages)
+    if 'screed' not in data:
+        data['screed'] = []
+    for message in messages:
+        if message not in data['screed']:
+            data['screed'].append(message)
     with config.open('w') as fp:
         dump(data, fp)
 
@@ -98,7 +105,7 @@ def screed_remove(*indexes: int, config: Path=CONFIG):
     with config.open() as fp:
         data = load(fp)
     for i in indexes:
-        data['screed'].remove(i)
+        del(data['screed'][i])
     with config.open('w') as fp:
         dump(data, fp)
 
@@ -109,7 +116,7 @@ def screed_list(config: Path=CONFIG):
     with config.open() as fp:
         data = load(fp)
     for i, message in enumerate(data['screed']):
-        yield '%05d   %s' % (i, message)
+        yield '% 5d   %s' % (i, message)
 
 def screed_upload(config: Path=CONFIG):
     '''
@@ -119,4 +126,4 @@ def screed_upload(config: Path=CONFIG):
     '''
     with config.open() as fp:
         data = load(fp)
-    logger.critical('Upload screed to %(registrar)s' % data)
+    logger.critical('Upload to %s: %s' % (data['registrar'], repr(data['screed'])))
