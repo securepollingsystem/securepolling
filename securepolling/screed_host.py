@@ -1,6 +1,6 @@
 from .log import Log
 
-from horetu import wsgi_form
+from horetu.annotations import InputFile
 
 def _screed_log(path):
     return Log(path, 'screed')
@@ -13,7 +13,7 @@ def _clean_house():
     Drop all records whose signatures are expired.
     '''
 
-def receive_voter_screed(log: _screed_log, blob):
+def receive_voter_screed(log: _screed_log, signed_screed: InputFile):
     '''
     Accept upload of a signed screed with this information.
 
@@ -37,5 +37,3 @@ def query(log: _screed_log, registrar,
 
     :param public_key: Public key prefix
     '''
-
-application = wsgi_form([receive_voter_screed, query])
