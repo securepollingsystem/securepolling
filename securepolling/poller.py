@@ -3,7 +3,6 @@ from os import makedirs, environ
 from pathlib import Path
 from json import load, dump
 from sys import stdout
-from horetu import OutputFile
 
 CONFIG = Path(environ['HOME']) / '.securepolling.json'
 logger = getLogger(__name__)

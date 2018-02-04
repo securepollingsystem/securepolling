@@ -32,20 +32,20 @@ def add_slot(db: Db, start: Datetime, stop: Datetime, length: Natural=None):
     Add appointment slots.
 
     :param start: Start datetime, in %Y-%m-%dT%H:%M:%S format
-    :param end: End datetime, in %Y-%m-%dT%H:%M:%S format
+    :param stop: Stop datetime, in %Y-%m-%dT%H:%M:%S format
     :param length: If set, break the range into slots of this many seconds
         each. If not set, treat the whole range as one time slot.
     '''
-    if not start < end:
-        raise ValueError('Start must be before end.')
+    if not start < stop:
+        raise ValueError('Start must be before stop.')
 
     cur = db.cursor()
     cur.execute('''\
 SELECT count(*) FROM slots
-WHERE start < slot_start < end
-   OR start < slot_end < end
-   OR slot_start < start < slot_end
-   OR slot_start < end < slot_end;''')
+WHERE start < slot_start < stop
+   OR start < slot_stop < stop
+   OR slot_start < start < slot_stop
+   OR slot_start < stop < slot_stop;''')
     count, = cur.fetchone()
     if count:
         raise ValueError('New slots overlap with existing slots.')
@@ -58,9 +58,9 @@ WHERE start < slot_start < end
         cur = db.cursor()
         for left in range(int(start.timestamp()), int(stop.timestamp()), length):
             slot_start = datetime.datetime.fromtimestamp(left)
-            slot_end = slot_start + (length - 1)
+            slot_stop = slot_start + (length - 1)
             cur.execute("insert into slots (start, stop, identity) values (?, ?, '')",
-                        slot_start, slot_end)
+                        slot_start, slot_stop)
         cur.close()
 
 def confirm_eligibility(identity):

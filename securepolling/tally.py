@@ -24,7 +24,7 @@ def update(db: _db, registrar, start_time=None, public_key=None):
             cur.execute('delete from tally where poller = ?', poller)
             values = ((opinion, poller) for phrase in screed['opinions'])
             cur.executemany('insert into tally values (?, ?)', values)
-            values = (opinion, for opinion in screed['opinions'])
+            values = ((opinion,) for opinion in screed['opinions'])
             cur.executemany('insert or replace into opinion values (?)', values)
 
 def search(db: _db, term):
