@@ -18,7 +18,7 @@ cli(Program({
         registrar.appointment_schedule,
     ],
     'screed-host': [
-        screed_host.receive_poller_screed,
+        screed_host.submit,
         screed_host.query,
     ],
     'tally': [

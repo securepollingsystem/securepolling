@@ -1,5 +1,6 @@
 from sqlite3 import connect
 from pickle import loads, dumps
+from sys import stdin
 
 from horetu.annotations import InputFile
 
@@ -27,7 +28,7 @@ def _clean_house():
     Drop all records whose signatures are expired.
     '''
 
-def receive_poller_screed(db: _db, signed_screed: InputFile):
+def submit(db: _db, signed_screed: InputFile=stdin):
     '''
     Accept upload of a signed screed with this information.
 
@@ -51,6 +52,9 @@ def query(db: _db, registrar, start_time=None, public_key=None):
     '''
     Query for new information.
 
+    :param db: database file
+    :param registrar: the registrar's server URL
+    :param start_time: get data from this date on (useful for getting only updates)
     :param public_key: Public key prefix
     '''
     sql = '''\

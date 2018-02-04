@@ -131,7 +131,8 @@ def screed_upload(config: Path=CONFIG):
         data['registrar'], data['screed'], phrases_signature,
         data['public_key'], public_key_signature,
     )
-    logger.critical('Upload to %s:\n%s' % (data['screed_host'], blob))
+    logger.critical('Upload to %s:' % data['screed_host'])
+    return blob
 
 def tally_pull(config: Path=CONFIG):
     pass

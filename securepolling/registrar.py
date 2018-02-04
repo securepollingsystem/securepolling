@@ -5,9 +5,10 @@ def Db(x):
     con = connect(x)
     cur = con.cursor()
     cur.execute('create table if not exists slots (start datetime, stop datetime, identity text not null)')
-    cur.execute('create table if not exists registrar (identity text primary key, date datetime)')
+    cur.execute('create table if not exists registrar (identity text primary key, submitted datetime, signed datetime)')
     cur.close()
     return con
+now = datetime.datetime.now
 
 def Natural(x):
     y = int(x)
@@ -72,13 +73,27 @@ def submit(db: Db, identity):
     :param identity: A unique string with information that the registrar will
     use to verify user identity in person.
     '''
+    cur = db.cursor()
+    rows = list(cur.execute('select * from registrar where identity = ?', identity))
+    if rows:
+        (identity, submitted, signed), = rows
+        if signed:
+            return 'Confirmed on %s\nsubkeys: TODO' % signed
+        else:
+            return 'Submitted for review on %s' % submitted
+    else:
+        cur.execute('insert into registrar values (?, ?, null)', identity, now())
+    cur.commit()
+    cur.close()
 
 def confirm_eligibility(db: Db, identity):
     '''
     Confirm that a particular identity is eligible to poll.
     '''
+    cur = db.cursor()
+    cur.execute('update registrar set signed = ? where identity = ?', now(), identity)
 
-def appointment_schedule(db: Db, identity, blinded_key, appointment_selection):
+def appointment_schedule(db: Db, identity, blinded_key, start_time):
     '''
     Check that
      
@@ -88,12 +103,31 @@ def appointment_schedule(db: Db, identity, blinded_key, appointment_selection):
     
     If all are true, tell the poller and put it on the calendar.
     If any are not, report an error.
+
+    :param start_time: Start time of the appointment
     '''
+
+    # TODO: checks
+
+    cur = db.cursor()
+    sql = "update slots set identity = ? where start = ? and identity = ''"
+    cur.execute(sql, identity, start_time)
+    sql = "select count(*) from slots set where identity = ? and start = ?"
+    count, = next(cur.execute(sql, identity, start_time))
+    if count:
+        return 'Scheduled'
+    else:
+        return 'Could not schedule: Slot is already taken'
+
 
 def appointment_availabilities(db: Db):
     '''
     List available appointment slots.
     '''
+    cur = db.cursor()
+    sql = "select start, stop from slots where ? < start and identity = ''"
+    for start, stop in cur.execute(sql, now()):
+        yield '%s to %s' % (start, stop)
 
 def sign_key(db: Db, identity, date, registrar_key):
     '''
