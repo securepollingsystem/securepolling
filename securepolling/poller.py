@@ -127,3 +127,9 @@ def screed_upload(config: Path=CONFIG):
     with config.open() as fp:
         data = load(fp)
     logger.critical('Upload to %s: %s' % (data['registrar'], repr(data['screed'])))
+
+def tally_pull(config: Path=CONFIG):
+    pass
+
+def tally_list(config: Path=CONFIG):
+    pass
