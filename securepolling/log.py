@@ -20,6 +20,9 @@ class Log(object):
             yield key, loads(value)
         cur.close()
 
+    def get(self, key):
+        return next(self.scan(key, key))
+
     def upsert(self, key, value):
         cur = self._con.cursor()
         cur.execute('insert or replace into %s values (?, ?)' % self._table, key, dumps(value))

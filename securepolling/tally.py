@@ -1,9 +1,9 @@
 from sqlite3 import connect
-from .log import tally as tally_log, Log
+from .log import Log
+from . import screed_host
 
 def _db(path):
     con = connect(path)
-    log_screed = Log(con, 'screed')
     cur = con.cursor()
     con.execute('CREATE TABLE IF NOT EXISTS tally (body text primary key, poller);')
     con.execute('CREATE INDEX IF NOT EXISTS tally_poller on tally (poller);')
@@ -12,12 +12,22 @@ def _db(path):
     return con
 
 def update_web(log: tally_log, screed_host):
-    pass
+    raise NotImplementedError
 
-def update_local(db: _db):
+def update_local(db: _db, registrar, start_time=None, public_key=None):
     '''
     :param db: Sqlite3 database
     '''
+    log_screed = Log(db, 'screed')
+    for screed in screed_host.query(log_screed, registrar, start_time=start_time, public_key=public_key):
+        poller = screed['poller']
+        with db:
+            cur = db.cursor()
+            cur.execute('delete from tally where poller = ?', poller)
+            values = ((opinion, poller) for phrase in screed['opinions'])
+            cur.executemany('insert into tally values (?, ?)', values)
+            values = (opinion, for opinion in screed['opinions'])
+            cur.executemany('insert or replace into opinion values (?)', values)
 
 def search(db: _db, term):
     '''
@@ -35,8 +45,7 @@ JOIN tally on opinion.body = tally.body;
 GROUP BY opinion.body
 '''
     for opinion, count in cur.execute(sql, term):
-        print('%d: %s' % (count, opinion.replace('\n', ' ')))
-
+        yield '%d: %s' % (count, opinion.replace('\n', ' '))
 
 def count(db: _db, *opinions):
     '''
