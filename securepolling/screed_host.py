@@ -10,7 +10,7 @@ def _clean_house():
     Drop all records whose signatures are expired.
     '''
 
-def receive_voter_screed(log: screed_log, signed_screed: InputFile):
+def receive_poller_screed(log: screed_log, signed_screed: InputFile):
     '''
     Accept upload of a signed screed with this information.
 
@@ -23,8 +23,8 @@ def receive_voter_screed(log: screed_log, signed_screed: InputFile):
     Confirm the signature chain, which involves getting the public key of the
     registrar from the registrar.
     
-    If it is valid, upsert it keyed by the registrar and the public key of the voter.
-    Include the current timestamp too.
+    If it is valid, upsert it keyed by the registrar and the public key of the
+    poller. Include the current timestamp too.
     '''
 
 def query(log: screed_log, registrar,

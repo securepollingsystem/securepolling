@@ -2,8 +2,8 @@ from sqlite3 import connect
 from pickle import loads, dumps
 
 class Log(object):
-    def __init__(self, path, table):
-        self._con = connect(path)
+    def __init__(self, con, table):
+        self._con = con
         self._table = table
         cur = self._con.cursor()
         cur.execute('create table if not exists %s(key text primary key, value blob);' % self._table)
@@ -37,9 +37,9 @@ class Log(object):
 
 def partial_log(table):
     def log(path):
-        return Log(path, table)
+        return Log(connect(path), table)
     return log
 screed    = partial_log('screed')
 tally     = partial_log('tally')
-voter     = partial_log('voter')
+poller    = partial_log('poller')
 registrar = partial_log('registrar')
