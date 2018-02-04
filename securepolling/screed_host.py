@@ -1,3 +1,5 @@
+def _registrar_public_key(registrar):
+    pass
 
 def receive_voter_screed(blob):
     '''
