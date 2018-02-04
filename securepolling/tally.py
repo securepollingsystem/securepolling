@@ -11,10 +11,10 @@ def _db(path):
     cur.close()
     return con
 
-def update_web(log: tally_log, screed_host):
+def _update_web(log: tally_log, screed_host):
     raise NotImplementedError
 
-def update_local(db: _db, registrar, start_time=None, public_key=None):
+def update(db: _db, registrar, start_time=None, public_key=None):
     '''
     :param db: Sqlite3 database
     '''
