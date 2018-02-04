@@ -3,6 +3,8 @@ from pickle import loads, dumps
 
 from horetu.annotations import InputFile
 
+from . import util
+
 def _db(path):
     con = connect(path)
     cur = con.cursor()
@@ -41,7 +43,8 @@ def receive_poller_screed(db: _db, signed_screed: InputFile):
     If it is valid, upsert it keyed by the registrar and the public key of the
     poller. Include the current timestamp too.
     '''
-    values = (registrar, public_key, dumps(phrases))
+    s = util.signed_screed.loads(signed_screed.read())
+    values = (s['registrar'], s['public_key'], dumps(s['phrases']))
     db.execute('insert or replace into screed values (?, ?, ?)', values)
 
 def query(db: _db, registrar, start_time=None, public_key=None):

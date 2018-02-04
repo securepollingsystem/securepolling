@@ -1,6 +1,5 @@
 from sqlite3 import connect
 import datetime
-from .log import registrar as log_registrar
 
 def Db(x):
     con = connect(x)
