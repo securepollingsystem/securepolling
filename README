@@ -1,0 +1,4 @@
+Secure Polling
+==============
+Implementation of the `Secure Polling System <https://securepollingsystem.org>`_
+architecture as command line and web utilities
