@@ -1,9 +1,6 @@
-from .log import Log
+from .log import screed as screed_log
 
 from horetu.annotations import InputFile
-
-def _screed_log(path):
-    return Log(path, 'screed')
 
 def _registrar_public_key(registrar):
     pass
@@ -13,7 +10,7 @@ def _clean_house():
     Drop all records whose signatures are expired.
     '''
 
-def receive_voter_screed(log: _screed_log, signed_screed: InputFile):
+def receive_voter_screed(log: screed_log, signed_screed: InputFile):
     '''
     Accept upload of a signed screed with this information.
 
@@ -30,7 +27,7 @@ def receive_voter_screed(log: _screed_log, signed_screed: InputFile):
     Include the current timestamp too.
     '''
 
-def query(log: _screed_log, registrar,
+def query(log: screed_log, registrar,
           start_time=None, public_key=None):
     '''
     Query for new information.

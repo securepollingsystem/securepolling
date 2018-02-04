@@ -6,7 +6,7 @@ class Log(object):
         self._con = connect(path)
         self._table = table
         cur = self._con.cursor()
-        cur.execute('create table if not exists %s(key text, value blob);' % self._table)
+        cur.execute('create table if not exists %s(key text primary key, value blob);' % self._table)
         cur.close()
 
     def scan(self, start, stop):
@@ -34,3 +34,12 @@ class Log(object):
         cur.execute('delete from %s where start <= key and key <= stop', self._table)
         cur.close()
 
+
+def partial_log(table):
+    def log(path):
+        return Log(path, table)
+    return log
+screed    = partial_log('screed')
+tally     = partial_log('tally')
+voter     = partial_log('voter')
+registrar = partial_log('registrar')
