@@ -62,9 +62,8 @@ WHERE start < slot_start < stop
                         slot_start, slot_stop)
         cur.close()
 
-def confirm_eligibility(identity):
+def submit(db: Db, identity):
     '''
-    Confirm that a particular identity is eligible to poll.
     If the identity has not been submitted before, queue the identity for
     confirmation. If it has been submitted but not reviewed, report the date of
     submission. If it has been reviewed, report the result and, if confirmed,
@@ -74,7 +73,12 @@ def confirm_eligibility(identity):
     use to verify user identity in person.
     '''
 
-def appointment_schedule(identity, blinded_key, appointment_selection):
+def confirm_eligibility(db: Db, identity):
+    '''
+    Confirm that a particular identity is eligible to poll.
+    '''
+
+def appointment_schedule(db: Db, identity, blinded_key, appointment_selection):
     '''
     Check that
      
@@ -86,12 +90,12 @@ def appointment_schedule(identity, blinded_key, appointment_selection):
     If any are not, report an error.
     '''
 
-def appointment_availabilities():
+def appointment_availabilities(db: Db):
     '''
     List available appointment slots.
     '''
 
-def sign_key(identity, date, registrar_key):
+def sign_key(db: Db, identity, date, registrar_key):
     '''
     Record the identity and date, and sign the poller's blinded key (stored
     already in the database) with the registar key.
