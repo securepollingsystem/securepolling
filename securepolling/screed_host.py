@@ -1,7 +1,19 @@
+from .log import Log
+
+from horetu import wsgi_form
+
+def _screed_log(path):
+    return Log(path, 'screed')
+
 def _registrar_public_key(registrar):
     pass
 
-def receive_voter_screed(blob):
+def _clean_house():
+    '''
+    Drop all records whose signatures are expired.
+    '''
+
+def receive_voter_screed(log: _screed_log, blob):
     '''
     Accept upload of a signed screed with this information.
 
@@ -18,14 +30,12 @@ def receive_voter_screed(blob):
     Include the current timestamp too.
     '''
 
-def clean_house():
-    '''
-    Drop all records whose signatures are expired.
-    '''
-
-def query(registrar, start_time=None, public_key=None):
+def query(log: _screed_log, registrar,
+          start_time=None, public_key=None):
     '''
     Query for new information.
 
     :param public_key: Public key prefix
     '''
+
+application = wsgi_form([receive_voter_screed, query])
