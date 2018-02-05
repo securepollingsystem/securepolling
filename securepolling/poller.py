@@ -4,14 +4,25 @@ from pathlib import Path
 from json import load, dump as _dump
 from functools import partial
 from sys import stdout
+from statistics import median_high
 
 from horetu import Error
-from . import util
+from . import tally, util
 
 dump = partial(_dump, indent=2)
 
-CONFIG = Path(environ['HOME']) / '.securepolling.json'
+CONFIG = Path(environ['HOME']) / '.config' / 'securepolling.json'
+CACHE  = Path(environ['HOME']) / '.cache' / 'securepolling-tally-screed.json'
 logger = getLogger(__name__)
+
+def _open(path):
+    if path.exists():
+        with path.open() as fp:
+            data = load(fp)
+    else:
+        makedirs(path.parent, exist_ok=True)
+        data = {}
+    return data
 
 def create(registrar, identity, config=CONFIG, *, force=False):
     '''
@@ -41,30 +52,28 @@ def create(registrar, identity, config=CONFIG, *, force=False):
     dump(data, fp)
     fp.close()
 
-def tally_servers(*tally_servers, config: Path=CONFIG):
+def tally_hosts(*tally_hosts, config: Path=CONFIG):
     '''
-    Add tally servers to your configuration.
+    Add tally hosts to your configuration.
 
-    :param tally_servers: tally servers
+    :param tally_hosts: tally hosts
     '''
-    with config.open() as fp:
-        data = load(fp)
-    if 'tally_servers' not in data:
-        data['tally_servers'] = []
-    for tally_server in tally_servers:
-        if tally_server not in data['tally_servers']:
-            data['tally_servers'].append(tally_server)
+    data = _open(config)
+    if 'tally_hosts' not in data:
+        data['tally_hosts'] = []
+    for tally_host in tally_hosts:
+        if tally_host not in data['tally_hosts']:
+            data['tally_hosts'].append(tally_host)
     with config.open('w') as fp:
         dump(data, fp)
 
-def generate_keypair(config: Path=CONFIG):
+def keygen(config: Path=CONFIG):
     '''
     Generates a new keypair and save it.
     If a keypair already exists with a valid registrar signature, return an
     error, otherwise overwrite an existing signature.
     '''
-    with config.open() as fp:
-        data = load(fp)
+    data = _open(config)
 
     if {'private_key', 'public_key', 'registrar_signature'}.issubset(data):
         raise Error('You already have a signed keypair.')
@@ -118,10 +127,12 @@ def screed_remove(*indexes: int, config: Path=CONFIG):
     '''
     Remove messages from the local screed.
     '''
-    with config.open() as fp:
-        data = load(fp)
+    data = _open(config)
     for i in indexes:
-        del(data['screed'][i])
+        if 0 <= i < len(data.get('screed', [])):
+            del(data['screed'][i])
+        else:
+            raise Error('Bad screed index: %d' % i)
     with config.open('w') as fp:
         dump(data, fp)
 
@@ -131,7 +142,7 @@ def screed_list(config: Path=CONFIG):
     '''
     with config.open() as fp:
         data = load(fp)
-    for i, message in enumerate(data['screed']):
+    for i, message in enumerate(data.get('screed', [])):
         yield '% 5d   %s' % (i, message)
 
 def screed_upload(config: Path=CONFIG):
@@ -140,18 +151,32 @@ def screed_upload(config: Path=CONFIG):
     signature for the user's registrar, or the server refuses to accept, or
     can't be reached, raise an error.
     '''
-    with config.open() as fp:
-        data = load(fp)
+    data = _open(config)
+    phrases_signature = public_key_signature = 'XXX'
+    if {'registrar', 'public_key'}.issubset(data):
+        blob = util.signed_screed.dumps(
+            data['registrar'], data.get('screed', []), phrases_signature,
+            data['public_key'], public_key_signature,
+        )
+        for host in data.get('screed_hosts', []):
+            screed_host.submit(screed_host._db(host), blob)
+    else:
+        raise Error('You need to get your key signed.')
 
-    blob = upload.signed_screed.dumps(
-        data['registrar'], data['screed'], phrases_signature,
-        data['public_key'], public_key_signature,
-    )
-    logger.critical('Upload to %s:' % data['screed_host'])
-    return blob
+def tally_pull(config: Path=CONFIG, cache: Path=CACHE):
+    data = _open(config)
+    opinions = _open(cache)
 
-def tally_pull(config: Path=CONFIG):
-    pass
+    for host in data.get('tally_hosts', []):
+        for opinion, count in tally.count(tally._db(host)):
+            if not opinion in opinions:
+                opinions[opinion] = {}
+            opinions[opinion][host] = count
+    with cache.open('w') as fp:
+        dump(opinions, fp)
 
-def tally_list(config: Path=CONFIG):
-    pass
+def tally_list(cache: Path=CACHE):
+    opinions = _open(cache)
+    for opinion in opinions:
+        count = median_high(opinions[opinion].values())
+        yield '% 5d   %s' % (count, opinion)

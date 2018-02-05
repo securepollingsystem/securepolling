@@ -50,16 +50,16 @@ def count(db: _db, *opinions):
     Report how many pollers have any one of the opinions.
     For example, if three opinions are passed, add one to the result if
     a particular poller has one, two, or all three; do not add to the result
-    if the poller has none.
+    if the poller has none. If no opinions are passed, use all opinions.
 
     :param opinions: The exact texts of the opinions
     :rtype: int
     '''
-    if not opinions:
-        raise ValueError('Provide at least one opinion.')
-
-    sql = 'SELECT count(*) FROM tally WHERE body = ?'
-    sql += ' OR body = ?' * (len(opinions) - 1)
+    if opinions:
+        sql = 'SELECT count(*) FROM tally WHERE body = ?'
+        sql += ' OR body = ?' * (len(opinions) - 1)
+    else:
+        sql = 'SELECT count(*) FROM tally'
     sql += ' GROUP BY body'
 
     cur = con.cursor()

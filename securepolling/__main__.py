@@ -4,12 +4,14 @@ from . import screed_host, tally, poller, registrar
 cli(Program({
     'poller': [
         poller.create,
-        poller.tally_servers,
-        poller.generate_keypair,
+        poller.tally_hosts,
+        poller.keygen,
         poller.screed_add,
         poller.screed_remove,
         poller.screed_list,
         poller.screed_upload,
+        poller.tally_pull,
+        poller.tally_list,
     ],
     'registrar-host': [
         registrar.add_slot,

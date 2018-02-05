@@ -3,11 +3,13 @@ class signed_screed(object):
     @staticmethod
     def dumps(registrar, phrases, phrases_signature,
               public_key, public_key_signature):
-        xs = registrar, phrases, phrases_signature, public_key, public_key_signature
+        xs = registrar, phrases_signature, public_key, public_key_signature,
+        for phrase in phrases:
+            xs += phrase.replace('\n', ' '),
         return signed_screed._prefix + '\n'.join(xs)
     @staticmethod
     def loads(x):
-        registrar, phrases, phrases_signature, public_key, public_key_signature = \
+        registrar, phrases_signature, public_key, public_key_signature, *phrases = \
             x[len(signed_screed._prefix):].split('\n')
         # TODO: Check phrases signature
         # TODO: Check public key signature

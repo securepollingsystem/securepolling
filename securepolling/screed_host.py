@@ -28,7 +28,7 @@ def _clean_house():
     Drop all records whose signatures are expired.
     '''
 
-def submit(db: _db, signed_screed: InputFile=stdin):
+def submit(db: _db, signed_screed):
     '''
     Accept upload of a signed screed with this information.
 
@@ -44,7 +44,7 @@ def submit(db: _db, signed_screed: InputFile=stdin):
     If it is valid, upsert it keyed by the registrar and the public key of the
     poller. Include the current timestamp too.
     '''
-    s = util.signed_screed.loads(signed_screed.read())
+    s = util.signed_screed.loads(signed_screed)
     values = (s['registrar'], s['public_key'], dumps(s['phrases']))
     db.execute('insert or replace into screed values (?, ?, ?)', values)
 
