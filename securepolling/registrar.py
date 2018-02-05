@@ -1,11 +1,21 @@
+from logging import getLogger
 from sqlite3 import connect
 import datetime
+
+logger = getLogger(__name__)
 
 def Db(x):
     con = connect(x)
     cur = con.cursor()
     cur.execute('create table if not exists slots (start datetime, stop datetime, identity text not null)')
-    cur.execute('create table if not exists registrar (identity text primary key, submitted datetime, signed datetime)')
+    cur.execute('''\
+CREATE TABLE IF NOT EXISTS registrar (
+  identity TEXT PRIMARY KEY,
+  submitted DATETIME,
+  confirmed DATETIME,
+  signed DATETIME,
+  subkey TEXT NOT NULL
+)''')
     cur.close()
     return con
 now = datetime.datetime.now
@@ -59,7 +69,7 @@ WHERE start < slot_start < stop
         for left in range(int(start.timestamp()), int(stop.timestamp()), length):
             slot_start = datetime.datetime.fromtimestamp(left)
             slot_stop = slot_start + (length - 1)
-            cur.execute("insert into slots (start, stop, identity) values (?, ?, '')",
+            cur.execute("insert into slots (start, stop, identity) values (?, ?, '', '')",
                         slot_start, slot_stop)
         cur.close()
 
@@ -76,13 +86,13 @@ def submit(db: Db, identity):
     cur = db.cursor()
     rows = list(cur.execute('select * from registrar where identity = ?', identity))
     if rows:
-        (identity, submitted, signed), = rows
+        (identity, submitted, signed, subkey), = rows
         if signed:
-            return 'Confirmed on %s\nsubkeys: TODO' % signed
+            return 'Confirmed on %s\nsubkey: %s' % (signed, subkey)
         else:
             return 'Submitted for review on %s' % submitted
     else:
-        cur.execute('insert into registrar values (?, ?, null)', identity, now())
+        cur.execute('insert into registrar values (?, ?, null, \'\')', identity, now())
     cur.commit()
     cur.close()
 
@@ -91,7 +101,8 @@ def confirm_eligibility(db: Db, identity):
     Confirm that a particular identity is eligible to poll.
     '''
     cur = db.cursor()
-    cur.execute('update registrar set signed = ? where identity = ?', now(), identity)
+    cur.execute('update registrar set confirmed = ? where identity = ?',
+                now(), identity)
 
 def appointment_schedule(db: Db, identity, blinded_key, start_time):
     '''
@@ -106,8 +117,7 @@ def appointment_schedule(db: Db, identity, blinded_key, start_time):
 
     :param start_time: Start time of the appointment
     '''
-
-    # TODO: checks
+    logger.critical('TODO: checks')
 
     cur = db.cursor()
     sql = "update slots set identity = ? where start = ? and identity = ''"
@@ -134,3 +144,17 @@ def sign_key(db: Db, identity, date, registrar_key):
     Record the identity and date, and sign the poller's blinded key (stored
     already in the database) with the registar key.
     '''
+    raise NotImplementedError
+    cur = db.cursor()
+    cur = cur.execute('select subkey from registrar where identity = ?', identity)
+    try:
+        subkey, = next(cur)
+    except StopIteration:
+        subkey = None
+    subkey = util.sign(registrar_key, subkey)
+
+    cur.execute('update registrar set signed = ?, subkey = ? where identity = ?',
+                now(), subkey identity)
+
+
+    logger.critical('TODO: checks')

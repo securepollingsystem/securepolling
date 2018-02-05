@@ -108,6 +108,7 @@ def _get_signature(registrar, identity):
     public key). If there is no valid signature data supplied by the registrar,
     return None.
     '''
+    logger.critical('TODO: Get signature from registrar.')
 
 def screed_add(*messages, config: Path=CONFIG):
     '''
@@ -153,6 +154,7 @@ def screed_upload(config: Path=CONFIG):
     '''
     data = _open(config)
     phrases_signature = public_key_signature = 'XXX'
+    logger.critical('TODO: Sign stuff.')
     if {'registrar', 'public_key'}.issubset(data):
         blob = util.signed_screed.dumps(
             data['registrar'], data.get('screed', []), phrases_signature,

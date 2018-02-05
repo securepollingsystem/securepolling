@@ -21,3 +21,6 @@ class signed_screed(object):
 
 def keygen():
     return 'Fake private key', 'Fake public key'
+
+def subkey(*args):
+    return 'Fake subkey'
