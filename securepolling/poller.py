@@ -5,6 +5,9 @@ from json import load, dump as _dump
 from functools import partial
 from sys import stdout
 
+from horetu import Error
+from . import util
+
 dump = partial(_dump, indent=2)
 
 CONFIG = Path(environ['HOME']) / '.securepolling.json'
@@ -22,7 +25,7 @@ def create(registrar, identity, config=CONFIG, *, force=False):
     use to verify user identity in person.
     '''
     if config.exists() and not force:
-        raise ValueError('Configuration already exists: %s' % config)
+        raise Error('Configuration already exists: %s' % config)
 
     data = {
         'registrar': registrar,
@@ -60,6 +63,19 @@ def generate_keypair(config: Path=CONFIG):
     If a keypair already exists with a valid registrar signature, return an
     error, otherwise overwrite an existing signature.
     '''
+    with config.open() as fp:
+        data = load(fp)
+
+    if {'private_key', 'public_key', 'registrar_signature'}.issubset(data):
+        raise Error('You already have a signed keypair.')
+    else:
+        if not {'private_key', 'public_key'}.issubset(data):
+            data['private_key'], data['public_key'] = util.keygen()
+        sig = _get_signature(data['registrar'], data['identity'])
+        if sig:
+            data['signature'] = sig
+        with config.open('w') as fp:
+            dump(data, fp)
 
 def _send_blinded_key(registrar, identity):
     '''
@@ -79,9 +95,9 @@ def _get_signature(registrar, identity):
     '''
     Get the registrar signature for the given identity. This function will
     attempt to retrieve the registrar's signature of user's blinded key, unblind
-    it using the stored salt, store the result (a signature of user's public
-    key) locally, and return true. If there is no valid signature data supplied
-    by the registrar, it will return false.
+    it using the stored salt, and return the result (a signature of user's
+    public key). If there is no valid signature data supplied by the registrar,
+    return None.
     '''
 
 def screed_add(*messages, config: Path=CONFIG):

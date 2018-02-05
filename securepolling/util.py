@@ -16,3 +16,6 @@ class signed_screed(object):
             'phrases': phrases,
             'public_key': public_key,
         }
+
+def keygen():
+    return 'Fake private key', 'Fake public key'
