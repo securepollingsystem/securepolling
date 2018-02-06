@@ -1,0 +1,43 @@
+// Registrar process
+digraph {
+  // Step 1
+  Identity [label="Identity and registrar combination" shape="box"]
+  Public [label="Poller public key" shape="box"]
+  Private [label="Poller private key" shape="box"]
+
+  Identity -> Request1
+  Registrar -> Schedule -> Request1
+  Request1 -> Registrar [label="Request acknowledgement of eligibility"]
+
+  Registrar -> Response1 [label="Poll regularly for the response, or explicitly synchronize."]
+  Response1 -> Subkey [label="Yes"]
+  Response1 -> Fail1 [label="Something went wrong."]
+
+  Subkey [label="Subkey for key-blinding" shape="box"]
+  Salt [label="Generate salt for blinding" shape="box"]
+
+  Blinded [label="Poller Blinded key" shape="box"]
+  Subkey -> Blinded
+  Salt -> Blinded
+  Public -> Blinded
+
+  Identity -> Request2
+  Blinded  -> Request2 -> Registrar
+  Registrar -> Response2 [label="Poll regularly for the response, or explicitly synchronize."]
+  Response2 -> Confirmation [label="Remember to show up!"]
+  Response2 -> Fail2 [label="Something went wrong."]
+
+  // Step 2
+  Confirmation -> Request3
+  Request3 -> Registrar [label="Poll regularly for the response, or explicitly synchronize."]
+  Registrar -> Response3
+  Response3 -> SignedBlinded [label="Appointment happened"]
+  Response3 -> Fail3 [label="Appointment hasn't happened or failed"]
+  SignedBlinded [label="Signature of blinded blob" shape="box"]
+
+  Salt -> Unblinded
+  Subkey -> Unblinded
+  SignedBlinded -> Unblinded
+
+  Unblinded [shape="box"]
+}

@@ -154,7 +154,7 @@ def sign_key(db: Db, identity, date, registrar_key):
     subkey = util.sign(registrar_key, subkey)
 
     cur.execute('update registrar set signed = ?, subkey = ? where identity = ?',
-                now(), subkey identity)
+                now(), subkey, identity)
 
 
     logger.critical('TODO: checks')
