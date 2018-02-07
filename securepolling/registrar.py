@@ -104,7 +104,7 @@ def confirm_eligibility(db: Db, identity):
     cur.execute('update registrar set confirmed = ? where identity = ?',
                 now(), identity)
 
-def appointment_schedule(db: Db, identity, blinded_key, start_time):
+def schedule_appointment(db: Db, identity, blinded_key, start_time):
     '''
     Check that
      
@@ -139,7 +139,7 @@ def appointment_availabilities(db: Db):
     for start, stop in cur.execute(sql, now()):
         yield '%s to %s' % (start, stop)
 
-def sign_key(db: Db, identity, date, registrar_key):
+def issue_signature(db: Db, identity, date, registrar_key):
     '''
     Record the identity and date, and sign the poller's blinded key (stored
     already in the database) with the registar key.

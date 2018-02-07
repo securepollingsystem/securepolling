@@ -15,9 +15,11 @@ cli(Program({
     ],
     'registrar': [
         registrar.add_slot,
-        registrar.confirm_eligibility,
-        registrar.sign_key,
-        registrar.appointment_schedule,
+        registrar.list_slots,
+        registrar.schedule_appointment,
+        registrar.verify_identity,
+        registrar.check_eligibility,
+        registrar.issue_signature,
     ],
     'screed-host': [
         screed_host.submit,
