@@ -143,6 +143,9 @@ def appointment_availabilities(db: Db):
     for start, stop in cur.execute(sql, now()):
         yield '%s to %s' % (start, stop)
 
+def schedule_appointment(db: Db, start_time):
+    pass
+
 def issue_signature(db: Db, identity, date, registrar_key):
     '''
     Record the identity and date, and sign the poller's blinded key (stored
