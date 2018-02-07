@@ -34,9 +34,7 @@ digraph {
 
   CheckEligibility [label="check_eligibility" shape="diamond"]
   r_check_eligibility -> CheckEligibility [style="dotted"]
-  CheckEligibility -> Subkey [label="Eligible"]
-  CheckEligibility -> Fail1 [label="Ineligible/failure"]
-  Fail1 [label="Stop"]
+  Identity -> CheckEligibility -> Subkey
 
   Subkey [label="Subkey for key-blinding" shape="box"]
   Salt [label="Salt for blinding" shape="box"]
@@ -50,24 +48,20 @@ digraph {
   Identity -> schedule_appointment
   Blinded  -> schedule_appointment -> r_schedule_appointment
   r_schedule_appointment -> Confirmation [style=dotted]
-  r_schedule_appointment -> Fail2
+  Identity -> Confirmation
   Confirmation [label="Confirm appointment" shape="diamond"]
-  Fail2 [label="Stop"]
 
   // Step 2
-  Sync [label="get_signed_key" shape=diamond]
-  Fail3 [label="Stop"]
-  Identity -> Sync -> r_verify_identity
   Confirmation -> r_verify_identity
+  Identity -> get_signature
   get_signature [shape="diamond"]
-  r_issue_signature -> get_signature [style=dotted]
-  get_signature -> SignedBlinded [label="Signature\navailable"]
-  get_signature -> Fail3 [label="Signature\nnot available"]
+  get_signature -> r_issue_signature [style=dotted]
+  r_issue_signature -> SignedBlinded
   SignedBlinded [label="Signature of blinded blob" shape="box"]
 
   Salt -> Unblinded
   Subkey -> Unblinded
   SignedBlinded -> Unblinded
 
-  Unblinded [shape="box"]
+  Unblinded [shape="hexagon" label="Unblinded key"]
 }
