@@ -27,10 +27,10 @@ digraph {
   Appointments [label="Available appointments" shape="box"]
   calendar -> r_list_slots -> Appointments
 
-  Appointments -> Request1
-  Identity -> Request1
-  Request1 [label="Choose an appointment." shape="diamond"]
-  Request1 -> r_check_eligibility // [label="Request acknowledgement of eligibility"]
+  Appointments -> r_schedule_appointment
+  Identity -> r_schedule_appointment
+  r_schedule_appointment [shape="diamond"]
+  r_schedule_appointment -> r_check_eligibility // [label="Request acknowledgement of eligibility"]
 
   CheckEligibility [label="check_eligibility" shape="diamond"]
   r_check_eligibility -> CheckEligibility [style="dotted"]
