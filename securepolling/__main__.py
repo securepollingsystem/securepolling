@@ -13,7 +13,7 @@ cli(Program({
         poller.tally_pull,
         poller.tally_list,
     ],
-    'registrar-host': [
+    'registrar': [
         registrar.add_slot,
         registrar.confirm_eligibility,
         registrar.sign_key,

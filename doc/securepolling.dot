@@ -40,8 +40,11 @@ digraph {
   Response2 -> Fail2 [label="Something went wrong."]
 
   // Step 2
-  Confirmation -> Request3
-  Request3 -> Registrar [label="Poll regularly for the response, or explicitly synchronize."]
+  Sync [label="get_signed_key" style=diamond]
+  Identity -> Request3
+  Sync -> Request3 [style=dotted label="Explicitly pull"]
+  Confirmation -> Request3 [style=dotted label="Poll periodically"]
+  Request3 -> Registrar
   Registrar -> Response3
   Response3 -> SignedBlinded [label="Appointment happened"]
   Response3 -> Fail3 [label="Appointment hasn't happened or failed"]
