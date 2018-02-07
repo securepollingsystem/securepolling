@@ -1,12 +1,24 @@
 // Registrar process
 digraph {
   // Step 1
+  create [shape="diamond"]
   Identity [label="Identity and registrar combination" shape="box"]
+
+  create -> Identity
+
+  keygen [shape="diamond"]
   Public [label="Poller public key" shape="box"]
   Private [label="Poller private key" shape="box"]
 
+  keygen -> Public
+  keygen -> Private
+
+  calendar [shape="diamond"]
+  Appointments [label="Available appointments" shape="box"]
+  Registrar -> calendar -> Appointments
+
+  Appointments -> Request1 [label="Choose an appointment."]
   Identity -> Request1
-  Registrar -> Schedule -> Request1
   Request1 -> Registrar [label="Request acknowledgement of eligibility"]
 
   Registrar -> Response1 [label="Poll regularly for the response, or explicitly synchronize."]
@@ -14,7 +26,7 @@ digraph {
   Response1 -> Fail1 [label="Something went wrong."]
 
   Subkey [label="Subkey for key-blinding" shape="box"]
-  Salt [label="Generate salt for blinding" shape="box"]
+  Salt [label="Salt for blinding" shape="box"]
 
   Blinded [label="Poller Blinded key" shape="box"]
   Subkey -> Blinded
@@ -39,5 +51,6 @@ digraph {
   Subkey -> Unblinded
   SignedBlinded -> Unblinded
 
+  Registrar [shape="box"]
   Unblinded [shape="box"]
 }

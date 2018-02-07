@@ -86,6 +86,12 @@ def keygen(config: Path=CONFIG):
         with config.open('w') as fp:
             dump(data, fp)
 
+def calendar(config: Path=CONFIG):
+    data = _open(config)
+    if not 'registrar' in config:
+        raise Error('Create an identity first.')
+    logger.critical('Get appointment availablities from %s' % config['registrar'])
+
 def _send_blinded_key(registrar, identity):
     '''
     App generates and stores a random salt. The client acquires a public subkey
