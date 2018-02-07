@@ -6,8 +6,8 @@ digraph {
     r_schedule_appointment [label="schedule_appointment"]
     r_verify_identity [label="verify_identity"]
     r_check_eligibility [label="check_eligibility"]
-    r_issue_key [label="issue_key"]
-  //r_verify_identity -> r_issue_key [style="dotted"]
+    r_issue_signature [label="issue_signature"]
+    r_verify_identity -> r_issue_signature [constraint="false"]
   }
 
   // Step 1
@@ -33,7 +33,7 @@ digraph {
   Request1 -> r_check_eligibility // [label="Request acknowledgement of eligibility"]
 
   CheckEligibility [label="check_eligibility" shape="diamond"]
-  r_check_eligibility -> CheckEligibility [label="Poll regularly" style="dotted"]
+  r_check_eligibility -> CheckEligibility [style="dotted"]
   CheckEligibility -> Subkey [label="Eligible"]
   CheckEligibility -> Fail1 [label="Ineligible/failure"]
   Fail1 [label="Stop"]
@@ -49,7 +49,7 @@ digraph {
   schedule_appointment [shape="diamond"]
   Identity -> schedule_appointment
   Blinded  -> schedule_appointment -> r_schedule_appointment
-  r_schedule_appointment -> Confirmation [style=dotted label="Poll periodically"]
+  r_schedule_appointment -> Confirmation [style=dotted]
   r_schedule_appointment -> Fail2
   Confirmation [label="Confirm appointment" shape="diamond"]
   Fail2 [label="Stop"]
@@ -58,10 +58,11 @@ digraph {
   Sync [label="get_signed_key" shape=diamond]
   Fail3 [label="Stop"]
   Identity -> Sync -> r_verify_identity
-  r_verify_identity -> Response3
   Confirmation -> r_verify_identity
-  Response3 -> SignedBlinded [label="Signature\navailable"]
-  Response3 -> Fail3 [label="Signature\nnot available"]
+  get_signature [shape="diamond"]
+  r_issue_signature -> get_signature [style=dotted]
+  get_signature -> SignedBlinded [label="Signature\navailable"]
+  get_signature -> Fail3 [label="Signature\nnot available"]
   SignedBlinded [label="Signature of blinded blob" shape="box"]
 
   Salt -> Unblinded
