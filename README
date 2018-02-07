@@ -15,3 +15,8 @@ sps_local
     as paths to SQLite3 databases
 securepolling
     Shared Python library
+
+
+Some attacks
+------------
+What happens if multiple different people claim the same identity?

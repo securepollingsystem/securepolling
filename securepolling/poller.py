@@ -117,11 +117,13 @@ def _get_signature(registrar, identity):
     '''
     logger.critical('TODO: Get signature from registrar.')
 
-def schedule_appointment(config: Path=CONFIG):
+def schedule_appointment(config: Path=CONFIG, start_time: registrar.Datetime):
     '''
     Schedule to have the registrar verify your eligibility, verify your
     identity, and sign your blinded key.
     '''
+    return registrar.schedule_appointment(
+        config['registrar'], config['identity'], start_time, config['blinded_key'])
 
 def confirm_appointment(config: Path=CONFIG):
     '''

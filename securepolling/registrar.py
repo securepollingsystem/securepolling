@@ -7,16 +7,29 @@ logger = getLogger(__name__)
 def Db(x):
     con = connect(x)
     cur = con.cursor()
-    cur.execute('create table if not exists slots (start datetime, stop datetime, identity text not null)')
+    cur.execute('''
+create table if not exists slots (
+  start datetime, stop datetime,
+  identity text not null, blinded_key text not null,
+  PRIMARY_KEY (start),
+  FOREIGN KEY (identity, blinded_key) REFERENCES registrar
+)''')
     cur.execute('''\
 CREATE TABLE IF NOT EXISTS registrar (
-  identity TEXT PRIMARY KEY,
-  submitted DATETIME,
-  confirmed DATETIME,
-  signed DATETIME,
+  identity TEXT NOT NULL,
   blinded_key TEXT NOT NULL,
-  subkey TEXT NOT NULL
+  submitted DATETIME,
+  signed DATETIME,
+  subkey TEXT NOT NULL,
+  FOREIGN KEY (identity) REFERENCES identities,
+  PRIMARY KEY (identity, blinded_key)
 )''')
+    cur.execute('''\
+CREATE TABLE IF NOT EXISTS identities (
+  identity TEXT PRIMARY KEY,
+  eligible INTEGER,
+  confirmed DATETIME
+''')
     cur.close()
     return con
 now = datetime.datetime.now
@@ -93,46 +106,69 @@ def appointment_availabilities(db: Db):
     for start, stop in cur.execute(sql, now()):
         yield '%s to %s' % (start, stop)
 
-def schedule_appointment(db: Db, identity, start_time, blinded_key):
+def schedule_appointment(db: Db, identity, blinded_key, start_time: Datetime):
     '''
     Check that
 
     * the selected appointment is available
-    * the identity has not selected another upcoming appointment
+    * the identity has not already been verified
 
     Then queue the identity for eligibility confirmation and
     queue the blinded_key for identity verification.
     '''
+    submitted = now()
+    cur = db.cursor()
+    cur.execute('''\
+select count(*) from registrar where signed not null
+and identity = ? and blinded_key = ?''', identity, blinded_key)
+    count, = cur.fetchone()
+    if count:
+        return 'Your identity has already been verified.'
+    else:
+        cur.execute('''\
+update slots set identity = ? and blinded_key = ? where start = ? and identity = ''
+''', identity, blinded_key, start_time)
+        cur.execute('''\
+select count(*) from slots set where identity = ? and blinded_key = ? and start = ?
+''', identity, blinded_key, start_time)
+        count, = cur.fetchone()
+        if count:
+            cur.execute('''\
+insert into registrar (identity, blinded_key, submitted)
+values (?, ?, ?)''', identity, blinded_key, submitted)
+            return '''\
+You are tentatively scheduled for %s.
+Check again before you go, in case the registrar did not have the chance to
+confirm your eligibility beforehand.''' % start_time
+        else:
+            return 'The appointment at %s is not available.' % start_time
 
 def confirm_eligibility(db: Db, identity):
     '''
     Confirm that a particular identity is eligible to poll.
     '''
     cur = db.cursor()
-    cur.execute('update registrar set confirmed = ? where identity = ?',
+    cur.execute('update identities set confirmed = 1 where identity = ?',
+                now(), identity)
+
+def confirm_ineligibility(db: Db, identity):
+    '''
+    Confirm that a particular identity is eligible to poll.
+    '''
+    cur = db.cursor()
+    cur.execute('update identities set confirmed = 0 where identity = ?',
                 now(), identity)
 
 def check_eligibility(db: Db, identity):
     '''
-    Check that
-     
-    * the identity's eligibility has been confirmed
-    
-    If all are true, tell the poller and put it on the calendar.
-    If any are not, report an error.
-
-    :param start_time: Start time of the appointment
+    Check that the identity's eligibility has been confirmed eligible.
     '''
     logger.critical('TODO: checks')
     cur = db.cursor()
-    sql = "update slots set identity = ? where start = ? and identity = ''"
-    cur.execute(sql, identity, start_time)
-    sql = "select count(*) from slots set where identity = ? and start = ?"
-    count, = next(cur.execute(sql, identity, start_time))
     if count:
-        return 'Scheduled'
+        return 'Confirmed eligible'
     else:
-        return 'Could not schedule: Slot is already taken'
+        return 'Not confirmed'
 
 def verify_identity(db: Db, identity):
     '''
