@@ -21,9 +21,12 @@ digraph {
   Identity -> Request1
   Request1 -> Registrar [label="Request acknowledgement of eligibility"]
 
-  Registrar -> Response1 [label="Poll regularly for the response, or explicitly synchronize."]
-  Response1 -> Subkey [label="Yes"]
-  Response1 -> Fail1 [label="Something went wrong."]
+  CheckEligibility [label="check_eligibility" shape="diamond"]
+  Registrar -> Response1 [label="Poll regularly for the response." style="dotted"]
+  CheckEligibility -> Response1 [label="Explicitly synchronize."]
+  Response1 -> Subkey [label="Eligible"]
+  Response1 -> Fail1 [label="Ineligible/failure"]
+  Fail1 [label="Stop"]
 
   Subkey [label="Subkey for key-blinding" shape="box"]
   Salt [label="Salt for blinding" shape="box"]
@@ -38,11 +41,13 @@ digraph {
   Registrar -> Response2 [label="Poll regularly for the response, or explicitly synchronize."]
   Response2 -> Confirmation [label="Remember to show up!"]
   Response2 -> Fail2 [label="Something went wrong."]
+  Fail2 [label="Stop"]
 
   // Step 2
-  Sync [label="get_signed_key" style=diamond]
+  Sync [label="get_signed_key" shape=diamond]
+  Fail3 [label="Stop"]
   Identity -> Request3
-  Sync -> Request3 [style=dotted label="Explicitly pull"]
+  Sync -> Request3 [label="Explicitly pull"]
   Confirmation -> Request3 [style=dotted label="Poll periodically"]
   Request3 -> Registrar
   Registrar -> Response3
