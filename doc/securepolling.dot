@@ -7,6 +7,7 @@ digraph {
     r_verify_identity [label="verify_identity"]
     r_check_eligibility [label="check_eligibility"]
     r_issue_signature [label="issue_signature"]
+    r_schedule_appointment -> r_check_eligibility [constraint="false"]
     r_verify_identity -> r_issue_signature [constraint="false"]
   }
 
@@ -27,10 +28,8 @@ digraph {
   Appointments [label="Available appointments" shape="box"]
   calendar -> r_list_slots -> Appointments
 
-  Appointments -> r_schedule_appointment
+  Appointments -> schedule_appointment [style="dotted"]
   Identity -> r_schedule_appointment
-  r_schedule_appointment [shape="diamond"]
-  r_schedule_appointment -> r_check_eligibility // [label="Request acknowledgement of eligibility"]
 
   CheckEligibility [label="check_eligibility" shape="diamond"]
   r_check_eligibility -> CheckEligibility [style="dotted"]
