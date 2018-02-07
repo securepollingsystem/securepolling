@@ -116,6 +116,24 @@ def _get_signature(registrar, identity):
     '''
     logger.critical('TODO: Get signature from registrar.')
 
+def schedule_appointment(config: Path=CONFIG):
+    '''
+    Schedule to have the registrar verify your eligibility, verify your
+    identity, and sign your blinded key.
+    '''
+
+def confirm_appointment(config: Path=CONFIG):
+    '''
+    Check whether the registrar has confirmed your appointment.
+    The registrar needs to verify your eligibility before it.
+    '''
+
+def get_signature(config: Path=CONFIG):
+    '''
+    Get the signed blinded key from the registrar after you have had
+    your identity verified by the registrar.
+    '''
+
 def screed_add(*messages, config: Path=CONFIG):
     '''
     Add messages to the local screed.

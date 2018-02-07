@@ -36,6 +36,10 @@ class Datetime(object):
     def dumps(y):
         return datetime.datetime.strftime(x, Datetime._format)
 
+def list_slots(db: Db):
+    '''
+    List appointment slots that are available with the registrar.
+    '''
 
 def add_slot(db: Db, start: Datetime, stop: Datetime, length: Natural=None):
     '''
@@ -73,7 +77,7 @@ WHERE start < slot_start < stop
                         slot_start, slot_stop)
         cur.close()
 
-def submit(db: Db, identity):
+def verify_identity(db: Db, identity):
     '''
     If the identity has not been submitted before, queue the identity for
     confirmation. If it has been submitted but not reviewed, report the date of
