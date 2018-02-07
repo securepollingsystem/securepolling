@@ -6,6 +6,9 @@ cli(Program({
         poller.create,
         poller.keygen,
         poller.calendar,
+        poller.schedule_appointment,
+        poller.confirm_appointment,
+        poller.get_signature,
 
         poller.screed_add,
         poller.screed_remove,

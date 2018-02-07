@@ -47,12 +47,12 @@ digraph {
   schedule_appointment [shape="diamond"]
   Identity -> schedule_appointment
   Blinded  -> schedule_appointment -> r_schedule_appointment
-  r_schedule_appointment -> Confirmation [style=dotted]
-  Identity -> Confirmation
-  Confirmation [label="Confirm appointment" shape="diamond"]
+  r_schedule_appointment -> confirm_appointment [style="dotted"]
+  Identity -> confirm_appointment
+  confirm_appointment [shape="diamond"]
 
   // Step 2
-  Confirmation -> r_verify_identity
+  confirm_appointment -> r_verify_identity
   Identity -> get_signature
   get_signature [shape="diamond"]
   get_signature -> r_issue_signature [style=dotted]
