@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS registrar (
   submitted DATETIME,
   confirmed DATETIME,
   signed DATETIME,
+  blinded_key TEXT NOT NULL,
   subkey TEXT NOT NULL
 )''')
     cur.close()
@@ -92,14 +93,51 @@ def appointment_availabilities(db: Db):
     for start, stop in cur.execute(sql, now()):
         yield '%s to %s' % (start, stop)
 
-def schedule_appointment(db: Db, identity, start_time):
-    pass
+def schedule_appointment(db: Db, identity, start_time, blinded_key):
+    '''
+    Check that
 
+    * the selected appointment is available
+    * the identity has not selected another upcoming appointment
+
+    Then queue the identity for eligibility confirmation and
+    queue the blinded_key for identity verification.
+    '''
+
+def confirm_eligibility(db: Db, identity):
+    '''
+    Confirm that a particular identity is eligible to poll.
+    '''
+    cur = db.cursor()
+    cur.execute('update registrar set confirmed = ? where identity = ?',
+                now(), identity)
+
+def check_eligibility(db: Db, identity):
+    '''
+    Check that
+     
+    * the identity's eligibility has been confirmed
+    
+    If all are true, tell the poller and put it on the calendar.
+    If any are not, report an error.
+
+    :param start_time: Start time of the appointment
+    '''
+    logger.critical('TODO: checks')
+    cur = db.cursor()
+    sql = "update slots set identity = ? where start = ? and identity = ''"
+    cur.execute(sql, identity, start_time)
+    sql = "select count(*) from slots set where identity = ? and start = ?"
+    count, = next(cur.execute(sql, identity, start_time))
+    if count:
+        return 'Scheduled'
+    else:
+        return 'Could not schedule: Slot is already taken'
 
 def verify_identity(db: Db, identity):
     '''
     If the identity has not been submitted before, queue the identity for
-    confirmation. If it has been submitted but not reviewed, report the date of
+    confirmation. If it has been submitted but not verified, report the date of
     submission. If it has been reviewed, report the result and, if confirmed,
     subkeys for blinded key submission.
 
@@ -118,40 +156,6 @@ def verify_identity(db: Db, identity):
         cur.execute('insert into registrar values (?, ?, null, \'\')', identity, now())
     cur.commit()
     cur.close()
-
-def confirm_eligibility(db: Db, identity):
-    '''
-    Confirm that a particular identity is eligible to poll.
-    '''
-    cur = db.cursor()
-    cur.execute('update registrar set confirmed = ? where identity = ?',
-                now(), identity)
-
-def check_eligibility(db: Db, identity, blinded_key, start_time):
-    '''
-    Check that
-     
-    * the identity's eligibility has been confirmed
-    * the selected appointment is available
-    * the identity has not selected another upcoming appointment
-    
-    If all are true, tell the poller and put it on the calendar.
-    If any are not, report an error.
-
-    :param start_time: Start time of the appointment
-    '''
-    logger.critical('TODO: checks')
-
-    cur = db.cursor()
-    sql = "update slots set identity = ? where start = ? and identity = ''"
-    cur.execute(sql, identity, start_time)
-    sql = "select count(*) from slots set where identity = ? and start = ?"
-    count, = next(cur.execute(sql, identity, start_time))
-    if count:
-        return 'Scheduled'
-    else:
-        return 'Could not schedule: Slot is already taken'
-
 
 def issue_signature(db: Db, identity, date, registrar_key):
     '''
