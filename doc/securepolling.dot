@@ -1,5 +1,15 @@
 // Registrar process
 digraph {
+  subgraph cluster_Registrar {
+    label="Registrar"
+    r_list_slots [label="list_slots"]
+    r_schedule_appointment [label="schedule_appointment"]
+    r_verify_identity [label="verify_identity"]
+    r_check_eligibility [label="check_eligibility"]
+    r_issue_key [label="issue_key"]
+  //r_verify_identity -> r_issue_key [style="dotted"]
+  }
+
   // Step 1
   create [shape="diamond"]
   Identity [label="Identity and registrar combination" shape="box"]
@@ -15,17 +25,17 @@ digraph {
 
   calendar [shape="diamond"]
   Appointments [label="Available appointments" shape="box"]
-  Registrar -> calendar -> Appointments
+  calendar -> r_list_slots -> Appointments
 
-  Appointments -> Request1 [label="Choose an appointment."]
+  Appointments -> Request1
   Identity -> Request1
-  Request1 -> Registrar [label="Request acknowledgement of eligibility"]
+  Request1 [label="Choose an appointment." shape="diamond"]
+  Request1 -> r_check_eligibility // [label="Request acknowledgement of eligibility"]
 
   CheckEligibility [label="check_eligibility" shape="diamond"]
-  Registrar -> Response1 [label="Poll regularly for the response." style="dotted"]
-  CheckEligibility -> Response1 [label="Explicitly synchronize."]
-  Response1 -> Subkey [label="Eligible"]
-  Response1 -> Fail1 [label="Ineligible/failure"]
+  r_check_eligibility -> CheckEligibility [label="Poll regularly" style="dotted"]
+  CheckEligibility -> Subkey [label="Eligible"]
+  CheckEligibility -> Fail1 [label="Ineligible/failure"]
   Fail1 [label="Stop"]
 
   Subkey [label="Subkey for key-blinding" shape="box"]
@@ -36,29 +46,27 @@ digraph {
   Salt -> Blinded
   Public -> Blinded
 
-  Identity -> Request2
-  Blinded  -> Request2 -> Registrar
-  Registrar -> Response2 [label="Poll regularly for the response, or explicitly synchronize."]
-  Response2 -> Confirmation [label="Remember to show up!"]
-  Response2 -> Fail2 [label="Something went wrong."]
+  schedule_appointment [shape="diamond"]
+  Identity -> schedule_appointment
+  Blinded  -> schedule_appointment -> r_schedule_appointment
+  r_schedule_appointment -> Confirmation [style=dotted label="Poll periodically"]
+  r_schedule_appointment -> Fail2
+  Confirmation [label="Confirm appointment" shape="diamond"]
   Fail2 [label="Stop"]
 
   // Step 2
   Sync [label="get_signed_key" shape=diamond]
   Fail3 [label="Stop"]
-  Identity -> Request3
-  Sync -> Request3 [label="Explicitly pull"]
-  Confirmation -> Request3 [style=dotted label="Poll periodically"]
-  Request3 -> Registrar
-  Registrar -> Response3
-  Response3 -> SignedBlinded [label="Appointment happened"]
-  Response3 -> Fail3 [label="Appointment hasn't happened or failed"]
+  Identity -> Sync -> r_verify_identity
+  r_verify_identity -> Response3
+  Confirmation -> r_verify_identity
+  Response3 -> SignedBlinded [label="Signature\navailable"]
+  Response3 -> Fail3 [label="Signature\nnot available"]
   SignedBlinded [label="Signature of blinded blob" shape="box"]
 
   Salt -> Unblinded
   Subkey -> Unblinded
   SignedBlinded -> Unblinded
 
-  Registrar [shape="box"]
   Unblinded [shape="box"]
 }
