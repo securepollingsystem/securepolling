@@ -7,7 +7,8 @@ digraph {
     r_verify_identity [label="verify_identity"]
     r_check_eligibility [label="check_eligibility"]
     r_issue_signature [label="issue_signature"]
-    r_schedule_appointment -> r_check_eligibility [constraint="false"]
+    r_confirm_eligibility [label="confirm_eligibility" shape="diamond"]
+    r_schedule_appointment -> r_confirm_eligibility -> r_check_eligibility [constraint="false" style="dotted"]
     r_verify_identity -> r_issue_signature [constraint="false"]
   }
 

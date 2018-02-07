@@ -40,6 +40,12 @@ def list_slots(db: Db):
     '''
     List appointment slots that are available with the registrar.
     '''
+    cur = db.cursor()
+    cur.execute('''
+SELECT start, stop FROM slots where identity = ''
+''')
+    yield from cur
+    cur.close()
 
 def add_slot(db: Db, start: Datetime, stop: Datetime, length: Natural=None):
     '''
@@ -76,6 +82,19 @@ WHERE start < slot_start < stop
             cur.execute("insert into slots (start, stop, identity) values (?, ?, '', '')",
                         slot_start, slot_stop)
         cur.close()
+
+def appointment_availabilities(db: Db):
+    '''
+    List available appointment slots.
+    '''
+    cur = db.cursor()
+    sql = "select start, stop from slots where ? < start and identity = ''"
+    for start, stop in cur.execute(sql, now()):
+        yield '%s to %s' % (start, stop)
+
+def schedule_appointment(db: Db, identity, start_time):
+    pass
+
 
 def verify_identity(db: Db, identity):
     '''
@@ -133,18 +152,6 @@ def check_eligibility(db: Db, identity, blinded_key, start_time):
     else:
         return 'Could not schedule: Slot is already taken'
 
-
-def appointment_availabilities(db: Db):
-    '''
-    List available appointment slots.
-    '''
-    cur = db.cursor()
-    sql = "select start, stop from slots where ? < start and identity = ''"
-    for start, stop in cur.execute(sql, now()):
-        yield '%s to %s' % (start, stop)
-
-def schedule_appointment(db: Db, start_time):
-    pass
 
 def issue_signature(db: Db, identity, date, registrar_key):
     '''

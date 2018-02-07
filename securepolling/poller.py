@@ -90,7 +90,8 @@ def calendar(config: Path=CONFIG):
     data = _open(config)
     if not 'registrar' in config:
         raise Error('Create an identity first.')
-    logger.critical('Get appointment availablities from %s' % config['registrar'])
+    for start, end in registrar.list_slots(config['registrar']):
+        yield '%s–%s' % (start, end)
 
 def _send_blinded_key(registrar, identity):
     '''
