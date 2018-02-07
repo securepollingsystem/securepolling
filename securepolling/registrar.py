@@ -108,7 +108,7 @@ def confirm_eligibility(db: Db, identity):
     cur.execute('update registrar set confirmed = ? where identity = ?',
                 now(), identity)
 
-def schedule_appointment(db: Db, identity, blinded_key, start_time):
+def check_eligibility(db: Db, identity, blinded_key, start_time):
     '''
     Check that
      

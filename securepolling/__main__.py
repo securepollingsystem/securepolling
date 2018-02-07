@@ -22,10 +22,10 @@ cli(Program({
     'registrar': [
         registrar.add_slot,
         registrar.list_slots,
-        registrar.schedule_appointment,
         registrar.verify_identity,
         registrar.check_eligibility,
         registrar.issue_signature,
+        registrar.schedule_appointment,
     ],
     'screed-host': [
         screed_host.submit,
