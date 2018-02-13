@@ -1,3 +1,5 @@
+import datetime
+
 class signed_screed(object):
     _prefix = 'Fake signed screed:\n'
     @staticmethod
@@ -24,3 +26,12 @@ def keygen():
 
 def subkey(*args):
     return 'Fake subkey'
+
+class Datetime(object):
+    _format = '%Y-%m-%dT%H:%M:%S'
+    @staticmethod
+    def loads(x):
+        return datetime.datetime.strptime(x, Datetime._format)
+    @staticmethod
+    def dumps(y):
+        return datetime.datetime.strftime(x, Datetime._format)

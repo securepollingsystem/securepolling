@@ -1,6 +1,7 @@
 from logging import getLogger
 from sqlite3 import connect
 import datetime
+from . import util
 
 logger = getLogger(__name__)
 
@@ -41,15 +42,6 @@ def Natural(x):
     else:
         raise ValueError('Not a natural number: %d' % y)
 
-class Datetime(object):
-    _format = '%Y-%m-%dT%H:%M:%S'
-    @staticmethod
-    def loads(x):
-        return datetime.datetime.strptime(x, Datetime._format)
-    @staticmethod
-    def dumps(y):
-        return datetime.datetime.strftime(x, Datetime._format)
-
 def list_slots(db: Db):
     '''
     List appointment slots that are available with the registrar.
@@ -61,7 +53,7 @@ SELECT start, stop FROM slots where identity = ''
     yield from cur
     cur.close()
 
-def add_slot(db: Db, start: Datetime, stop: Datetime, length: Natural=None):
+def add_slot(db: Db, start: util.Datetime, stop: util.Datetime, length: Natural=None):
     '''
     Add appointment slots.
 
@@ -106,7 +98,7 @@ def appointment_availabilities(db: Db):
     for start, stop in cur.execute(sql, now()):
         yield '%s to %s' % (start, stop)
 
-def schedule_appointment(db: Db, identity, blinded_key, start_time: Datetime):
+def schedule_appointment(db: Db, identity, blinded_key, start_time: util.Datetime):
     '''
     Check that
 
