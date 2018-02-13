@@ -130,12 +130,14 @@ def confirm_appointment(config: Path=CONFIG):
     Check whether the registrar has confirmed your appointment.
     The registrar needs to verify your eligibility before it.
     '''
+    return registrar.check_eligibility(config['registrar'], config['identity'])
 
 def get_signature(config: Path=CONFIG):
     '''
     Get the signed blinded key from the registrar after you have had
     your identity verified by the registrar.
     '''
+    return registrar.issue_signature(config['registrar'], config['identity'])
 
 def screed_add(*messages, config: Path=CONFIG):
     '''

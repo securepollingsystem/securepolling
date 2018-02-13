@@ -157,10 +157,14 @@ def check_eligibility(db: Db, identity):
     '''
     logger.critical('TODO: checks')
     cur = db.cursor()
-    if count:
-        return 'Confirmed eligible'
+    try:
+        confirmed, = next(cur.execute('select confirmed from identities where identity = ?'))
+    except StopIteration:
+        yield 'Not confirmed'
     else:
-        return 'Not confirmed'
+        yield 'Confirmed eligible'
+        for appointment in cur.execute('...'):
+            yield 'Scheduled for %s–%s'
 
 def verify_identity(db: Db, identity):
     '''
@@ -185,7 +189,7 @@ def verify_identity(db: Db, identity):
     cur.commit()
     cur.close()
 
-def issue_signature(db: Db, identity, date, registrar_key):
+def issue_signature(db: Db, identity, registrar_key=None):
     '''
     Record the identity and date, and sign the poller's blinded key (stored
     already in the database) with the registar key.
