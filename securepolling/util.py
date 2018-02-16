@@ -24,8 +24,8 @@ class signed_screed(object):
 def keygen():
     return 'Fake private key', 'Fake public key'
 
-def subkey(*args):
-    return 'Fake subkey'
+def blind_key(public_key, blinding_salt):
+    return 'Fake blinded key:\n%s\n%s' % (public_key, blinding_salt)
 
 class Datetime(object):
     _format = '%Y-%m-%dT%H:%M:%S'

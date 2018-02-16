@@ -7,7 +7,7 @@ from sys import stdout
 from statistics import median_high
 
 from horetu import Error
-from . import tally, util
+from . import registrar, screed_host, tally, util
 
 dump = partial(_dump, indent=2)
 
@@ -15,7 +15,7 @@ CONFIG = Path(environ['HOME']) / '.config' / 'securepolling.json'
 CACHE  = Path(environ['HOME']) / '.cache' / 'securepolling-tally-screed.json'
 logger = getLogger(__name__)
 
-def _open(path):
+def _read(path):
     if path.exists():
         with path.open() as fp:
             data = load(fp)
@@ -23,6 +23,12 @@ def _open(path):
         makedirs(path.parent, exist_ok=True)
         data = {}
     return data
+
+def _write(data, path):
+    if not path.parent.exists():
+        makedirs(path.parent, exist_ok=True)
+    with path.open('w') as fp:
+        dump(data, fp)
 
 def create(registrar, identity, config=CONFIG, *, force=False):
     '''
@@ -58,14 +64,13 @@ def tally_hosts(*tally_hosts, config: Path=CONFIG):
 
     :param tally_hosts: tally hosts
     '''
-    data = _open(config)
+    data = _read(config)
     if 'tally_hosts' not in data:
         data['tally_hosts'] = []
     for tally_host in tally_hosts:
         if tally_host not in data['tally_hosts']:
             data['tally_hosts'].append(tally_host)
-    with config.open('w') as fp:
-        dump(data, fp)
+    _write(data, config)
 
 def keygen(config: Path=CONFIG):
     '''
@@ -73,33 +78,20 @@ def keygen(config: Path=CONFIG):
     If a keypair already exists with a valid registrar signature, return an
     error, otherwise overwrite an existing signature.
     '''
-    data = _open(config)
+    data = _read(config)
 
-    if {'private_key', 'public_key', 'registrar_signature'}.issubset(data):
-        raise Error('You already have a signed keypair.')
-    else:
-        if not {'private_key', 'public_key'}.issubset(data):
-            data['private_key'], data['public_key'] = util.keygen()
-        sig = _get_signature(data['registrar'], data['identity'])
-        if sig:
-            data['signature'] = sig
-        with config.open('w') as fp:
-            dump(data, fp)
+    if {'private_key', 'public_key'}.issubset(data):
+        raise Error('You already have a keypair.')
+    elif not {'private_key', 'public_key'}.issubset(data):
+        data['private_key'], data['public_key'] = util.keygen()
+        _write(data, config)
 
 def calendar(config: Path=CONFIG):
-    data = _open(config)
-    if not 'registrar' in config:
+    data = _read(config)
+    if not 'registrar' in data:
         raise Error('Create an identity first.')
-    for start, end in registrar.list_slots(config['registrar']):
+    for start, end in registrar.list_slots(registrar.Db(data['registrar'])):
         yield '%s–%s' % (start, end)
-
-def _send_blinded_key(registrar, identity):
-    '''
-    App generates and stores a random salt. The client acquires a public subkey
-    from the registrar. The app uses that public subkey to generate a blinded
-    version of the user's public key, then sends the blinded version to the
-    registrar.
-    '''
 
 def _signature_valid(registrar, identity):
     '''
@@ -122,49 +114,55 @@ def schedule_appointment(start_time: util.Datetime, *, config: Path=CONFIG):
     Schedule to have the registrar verify your eligibility, verify your
     identity, and sign your blinded key.
     '''
+    data = _read(config)
+    if not {'registrar', 'identity', 'public_key'}.issubset(data):
+        raise Error('Create an identity and key first.')
+    elif not 'blinding_salt' in data:
+        data['blinding_salt'] = 'Fake blinding salt'
+        _write(data, config)
+    blinded_key = util.blind_key(data['public_key'], data['blinding_salt'])
     return registrar.schedule_appointment(
-        config['registrar'], config['identity'], start_time, config['blinded_key'])
+        registrar.Db(data['registrar']), data['identity'], blinded_key, start_time)
 
 def confirm_appointment(config: Path=CONFIG):
     '''
     Check whether the registrar has confirmed your appointment.
     The registrar needs to verify your eligibility before it.
     '''
-    return registrar.check_eligibility(config['registrar'], config['identity'])
+    data = _read(config)
+    return registrar.check_eligibility(data['registrar'], data['identity'])
 
 def get_signature(config: Path=CONFIG):
     '''
     Get the signed blinded key from the registrar after you have had
     your identity verified by the registrar.
     '''
-    return registrar.issue_signature(config['registrar'], config['identity'])
+    data = _read(config)
+    return registrar.issue_signature(data['registrar'], data['identity'])
 
 def screed_add(*messages, config: Path=CONFIG):
     '''
     Add messages to the local screed.
     '''
-    with config.open() as fp:
-        data = load(fp)
+    data = _read(config)
     if 'screed' not in data:
         data['screed'] = []
     for message in messages:
         if message not in data['screed']:
             data['screed'].append(message)
-    with config.open('w') as fp:
-        dump(data, fp)
+    _write(data, config)
 
 def screed_remove(*indexes: int, config: Path=CONFIG):
     '''
     Remove messages from the local screed.
     '''
-    data = _open(config)
+    data = _read(config)
     for i in indexes:
         if 0 <= i < len(data.get('screed', [])):
             del(data['screed'][i])
         else:
             raise Error('Bad screed index: %d' % i)
-    with config.open('w') as fp:
-        dump(data, fp)
+    _write(data, config)
 
 def screed_list(config: Path=CONFIG):
     '''
@@ -181,7 +179,7 @@ def screed_upload(config: Path=CONFIG):
     signature for the user's registrar, or the server refuses to accept, or
     can't be reached, raise an error.
     '''
-    data = _open(config)
+    data = _read(config)
     phrases_signature = public_key_signature = 'XXX'
     logger.critical('TODO: Sign stuff.')
     if {'registrar', 'public_key'}.issubset(data):
@@ -195,19 +193,18 @@ def screed_upload(config: Path=CONFIG):
         raise Error('You need to get your key signed.')
 
 def tally_pull(config: Path=CONFIG, cache: Path=CACHE):
-    data = _open(config)
-    opinions = _open(cache)
+    data = _read(config)
+    opinions = _read(cache)
 
     for host in data.get('tally_hosts', []):
         for opinion, count in tally.count(tally._db(host)):
             if not opinion in opinions:
                 opinions[opinion] = {}
             opinions[opinion][host] = count
-    with cache.open('w') as fp:
-        dump(opinions, fp)
+    _write(opinions, cache)
 
 def tally_list(cache: Path=CACHE):
-    opinions = _open(cache)
+    opinions = _read(cache)
     for opinion in opinions:
         count = median_high(opinions[opinion].values())
         yield '% 5d   %s' % (count, opinion)

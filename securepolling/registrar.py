@@ -12,8 +12,8 @@ def Db(x):
 create table if not exists slots (
   start datetime, stop datetime,
   identity text not null, blinded_key text not null,
-  PRIMARY_KEY (start),
-  FOREIGN KEY (identity, blinded_key) REFERENCES registrar
+  PRIMARY KEY (start),
+  FOREIGN KEY (identity, blinded_key) REFERENCES registrar 
 )''')
     cur.execute('''\
 CREATE TABLE IF NOT EXISTS registrar (
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS identities (
   identity TEXT PRIMARY KEY,
   eligible INTEGER,
   confirmed DATETIME
-''')
+)''')
     cur.close()
     return con
 now = datetime.datetime.now
@@ -68,10 +68,10 @@ def add_slot(db: Db, start: util.Datetime, stop: util.Datetime, length: Natural=
     cur = db.cursor()
     cur.execute('''\
 SELECT count(*) FROM slots
-WHERE start < slot_start < stop
-   OR start < slot_stop < stop
-   OR slot_start < start < slot_stop
-   OR slot_start < stop < slot_stop;''')
+WHERE ((? < start) AND (start < ?))
+   OR ((? < stop ) AND (stop < ?))
+   OR ((start < ?) AND (? < stop))
+   OR ((start < ?) AND (? < stop));''', (start, stop, start, stop, start, start, stop, stop))
     count, = cur.fetchone()
     if count:
         raise ValueError('New slots overlap with existing slots.')
@@ -84,9 +84,9 @@ WHERE start < slot_start < stop
         cur = db.cursor()
         for left in range(int(start.timestamp()), int(stop.timestamp()), length):
             slot_start = datetime.datetime.fromtimestamp(left)
-            slot_stop = slot_start + (length - 1)
-            cur.execute("insert into slots (start, stop, identity) values (?, ?, '', '')",
-                        slot_start, slot_stop)
+            slot_stop = slot_start + datetime.timedelta(seconds=length - 1)
+            cur.execute("insert into slots (start, stop, identity, blinded_key) values (?, ?, '', '')",
+                        (slot_start, slot_stop))
         cur.close()
 
 def appointment_availabilities(db: Db):
@@ -112,22 +112,26 @@ def schedule_appointment(db: Db, identity, blinded_key, start_time: util.Datetim
     cur = db.cursor()
     cur.execute('''\
 select count(*) from registrar where signed not null
-and identity = ? and blinded_key = ?''', identity, blinded_key)
+and identity = ? and blinded_key = ?''', (identity, blinded_key))
     count, = cur.fetchone()
     if count:
         return 'Your identity has already been verified.'
     else:
+        cur = db.cursor()
         cur.execute('''\
-update slots set identity = ? and blinded_key = ? where start = ? and identity = ''
-''', identity, blinded_key, start_time)
+update slots set identity = ?, blinded_key = ? where start = ? and identity = ''
+''', (identity, blinded_key, start_time))
+        cur.close()
+
+        cur = db.cursor()
         cur.execute('''\
-select count(*) from slots set where identity = ? and blinded_key = ? and start = ?
-''', identity, blinded_key, start_time)
+select count(*) from slots where identity = ? and blinded_key = ? and start = ?
+''', (identity, blinded_key, start_time))
         count, = cur.fetchone()
         if count:
             cur.execute('''\
-insert into registrar (identity, blinded_key, submitted)
-values (?, ?, ?)''', identity, blinded_key, submitted)
+insert into registrar (identity, blinded_key, submitted, subkey)
+values (?, ?, ?, '')''', (identity, blinded_key, submitted))
             return '''\
 You are tentatively scheduled for %s.
 Check again before you go, in case the registrar did not have the chance to
