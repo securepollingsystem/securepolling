@@ -1,3 +1,23 @@
+/*
+
+Solid
+  Explicit data flow
+Dotted
+  Data dependencies that are stored in the registrar's database
+Dashed
+  Steps of the human-facing poller procedure
+
+Diamond
+  User interface
+Ellipse
+  Computer interface
+Box
+  Datum
+Hexagon
+  Output datum for the other poller features (screed and tally)
+
+*/
+
 // Registrar process
 digraph {
   subgraph cluster_Registrar {
@@ -12,6 +32,7 @@ digraph {
     r_confirm_eligibility [label="confirm_eligibility" shape="diamond"]
     r_schedule_appointment -> r_confirm_eligibility -> r_verify_identity -> r_issue_signature [style="dotted"]
     r_submit_blinded_key -> r_issue_signature [style="dotted"]
+    r_key [shape="box" label="Registrar key"]
   }
 
   // Step 1
@@ -28,32 +49,37 @@ digraph {
 //keygen -> Private
   create -> Public
   create -> Private
+  Public, Private [shape="hexagon"]
 
   calendar [shape="diamond"]
   Appointments [label="Available appointments" shape="box"]
   calendar -> r_list_slots -> Appointments
-  Appointments -> schedule_appointment [style="dotted"]
+  Appointments -> schedule_appointment [style="dashed"]
 
   Subkey [label="Subkey for key-blinding" shape="box"]
   Salt [label="Salt for blinding" shape="box"]
 
   Blinded [label="Poller Blinded key" shape="box"]
-  Private -> Blinded
+  Public -> Blinded
   Subkey -> Blinded
   Salt -> Blinded
-  Blinded -> r_verify_identity [label="Show key/fingerprint\nto registrar?"]
+  display_blinded_key [shape="diamond"]
+  Blinded -> display_blinded_key -> paper
+  paper [shape="box" label="Blinded key\nfingerprint\nand QR code"]
+  paper -> r_verify_identity [style="dashed"]
 
   schedule_appointment, get_signature [shape="diamond"]
   Identity -> schedule_appointment
-  Public  -> "???"
   schedule_appointment -> r_schedule_appointment
-  schedule_appointment -> confirm_appointment -> get_signature [style="dotted"]
+  create -> calendar [style="dashed"]
+  schedule_appointment -> confirm_appointment -> get_signature -> display_blinded_key [style="dashed"]
   get_signature -> r_issue_signature
   Identity -> confirm_appointment
   confirm_appointment [shape="diamond"]
 
   Blinded -> r_submit_blinded_key
 
+  r_key -> r_check_eligibility
   confirm_appointment -> r_check_eligibility -> Subkey
   r_issue_signature -> SignedBlinded
   SignedBlinded [label="Signature of blinded blob" shape="box"]
