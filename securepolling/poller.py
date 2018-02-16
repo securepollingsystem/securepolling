@@ -130,7 +130,7 @@ def confirm_appointment(config: Path=CONFIG):
     The registrar needs to verify your eligibility before it.
     '''
     data = _read(config)
-    return registrar.check_eligibility(data['registrar'], data['identity'])
+    return registrar.check_eligibility(registrar.Db(data['registrar']), data['identity'])
 
 def get_signature(config: Path=CONFIG):
     '''

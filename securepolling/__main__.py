@@ -24,6 +24,8 @@ cli(Program({
         registrar.list_slots,
         registrar.verify_identity,
         registrar.check_eligibility,
+        registrar.confirm_eligibility,
+        registrar.confirm_ineligibility,
         registrar.issue_signature,
         registrar.schedule_appointment,
     ],

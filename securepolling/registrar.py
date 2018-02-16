@@ -7,15 +7,16 @@ logger = getLogger(__name__)
 
 def Db(x):
     con = connect(x)
-    cur = con.cursor()
-    cur.execute('''
+    with con:
+        cur = con.cursor()
+        cur.execute('''
 create table if not exists slots (
   start datetime, stop datetime,
   identity text not null, blinded_key text not null,
   PRIMARY KEY (start),
   FOREIGN KEY (identity, blinded_key) REFERENCES registrar 
 )''')
-    cur.execute('''\
+        cur.execute('''\
 CREATE TABLE IF NOT EXISTS registrar (
   identity TEXT NOT NULL,
   blinded_key TEXT NOT NULL,
@@ -25,13 +26,13 @@ CREATE TABLE IF NOT EXISTS registrar (
   FOREIGN KEY (identity) REFERENCES identities,
   PRIMARY KEY (identity, blinded_key)
 )''')
-    cur.execute('''\
+        cur.execute('''\
 CREATE TABLE IF NOT EXISTS identities (
   identity TEXT PRIMARY KEY,
-  eligible INTEGER,
-  confirmed DATETIME
+  eligible INTEGER NOT NULL,
+  confirmed DATETIME NOT NULL
 )''')
-    cur.close()
+        cur.close()
     return con
 now = datetime.datetime.now
 
@@ -46,12 +47,12 @@ def list_slots(db: Db):
     '''
     List appointment slots that are available with the registrar.
     '''
-    cur = db.cursor()
-    cur.execute('''
+    with db:
+        cur = db.cursor()
+        cur.execute('''
 SELECT start, stop FROM slots where identity = ''
 ''')
-    yield from cur
-    cur.close()
+        yield from cur
 
 def add_slot(db: Db, start: util.Datetime, stop: util.Datetime, length: Natural=None):
     '''
@@ -117,11 +118,11 @@ and identity = ? and blinded_key = ?''', (identity, blinded_key))
     if count:
         return 'Your identity has already been verified.'
     else:
-        cur = db.cursor()
-        cur.execute('''\
+        with db:
+            cur = db.cursor()
+            cur.execute('''\
 update slots set identity = ?, blinded_key = ? where start = ? and identity = ''
 ''', (identity, blinded_key, start_time))
-        cur.close()
 
         cur = db.cursor()
         cur.execute('''\
@@ -129,7 +130,9 @@ select count(*) from slots where identity = ? and blinded_key = ? and start = ?
 ''', (identity, blinded_key, start_time))
         count, = cur.fetchone()
         if count:
-            cur.execute('''\
+            with db:
+                cur = db.cursor()
+                cur.execute('''\
 insert into registrar (identity, blinded_key, submitted, subkey)
 values (?, ?, ?, '')''', (identity, blinded_key, submitted))
             return '''\
@@ -143,17 +146,22 @@ def confirm_eligibility(db: Db, identity):
     '''
     Confirm that a particular identity is eligible to poll.
     '''
-    cur = db.cursor()
-    cur.execute('update identities set confirmed = 1 where identity = ?',
-                now(), identity)
+    with db:
+        cur = db.cursor()
+        cur.execute('''
+insert or replace into identities (identity, eligible, confirmed)
+values (?, 1, ?)''', (identity, now()))
 
 def confirm_ineligibility(db: Db, identity):
     '''
     Confirm that a particular identity is eligible to poll.
     '''
-    cur = db.cursor()
-    cur.execute('update identities set confirmed = 0 where identity = ?',
-                now(), identity)
+    with db:
+        cur = db.cursor()
+        cur.execute('''
+insert or replace into identities
+(identity, eligible, confirmed)
+values (?, 0, ?)''', (identity, now()))
 
 def check_eligibility(db: Db, identity):
     '''
@@ -161,14 +169,14 @@ def check_eligibility(db: Db, identity):
     '''
     logger.critical('TODO: checks')
     cur = db.cursor()
-    try:
-        confirmed, = next(cur.execute('select confirmed from identities where identity = ?'))
-    except StopIteration:
-        yield 'Not confirmed'
-    else:
+    count, = next(cur.execute(
+        'select count(*) from identities where eligible = 1 and identity = ?', (identity,)))
+    if count:
         yield 'Confirmed eligible'
-        for appointment in cur.execute('...'):
+        for appointment in cur.execute('select start, stop from slots where identity = ?', (identity)):
             yield 'Scheduled for %s–%s'
+    else:
+        yield 'Not confirmed'
 
 def verify_identity(db: Db, identity):
     '''
