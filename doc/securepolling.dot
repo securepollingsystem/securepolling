@@ -4,7 +4,7 @@ digraph {
     label="Registrar"
     r_list_slots [label="list_slots"]
     r_schedule_appointment [label="schedule_appointment"]
-    r_verify_identity [label="verify_identity"]
+    r_verify_identity [label="verify_identity" shape="diamond"]
     r_check_eligibility [label="check_eligibility"]
     r_issue_signature [label="issue_signature"]
     r_submit_blinded_key [label="submit_blinded_key"]
@@ -39,6 +39,7 @@ digraph {
   Private -> Blinded
   Subkey -> Blinded
   Salt -> Blinded
+  Blinded -> r_verify_identity [label="Show key/fingerprint\nto registrar?"]
 
   schedule_appointment, get_signature [shape="diamond"]
   Identity -> schedule_appointment
@@ -48,8 +49,7 @@ digraph {
   Identity -> confirm_appointment
   confirm_appointment [shape="diamond"]
 
-  Blinded -> submit_blinded_key
-  submit_blinded_key -> r_submit_blinded_key
+  Blinded -> r_submit_blinded_key
 
   confirm_appointment -> r_check_eligibility -> Subkey
   r_issue_signature -> SignedBlinded
