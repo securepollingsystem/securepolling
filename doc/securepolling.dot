@@ -4,7 +4,7 @@ Solid
   Explicit data flow
 Dotted
   Data dependencies that are stored in the registrar's database
-Dashed
+Red
   Steps of the human-facing poller procedure
 
 Diamond
@@ -31,6 +31,7 @@ digraph {
     r_confirm_eligibility -> r_check_eligibility [style="dotted"]
     r_confirm_eligibility [label="confirm_eligibility" shape="diamond"]
     r_schedule_appointment -> r_confirm_eligibility -> r_verify_identity -> r_issue_signature [style="dotted"]
+    r_submit_blinded_key -> r_verify_identity [style="dotted" constraint="false"]
     r_submit_blinded_key -> r_issue_signature [style="dotted"]
     r_key [shape="box" label="Registrar key"]
   }
@@ -54,7 +55,7 @@ digraph {
   calendar [shape="diamond"]
   Appointments [label="Available appointments" shape="box"]
   calendar -> r_list_slots -> Appointments
-  Appointments -> schedule_appointment [style="dashed"]
+  calendar -> Appointments -> schedule_appointment [color="red"]
 
   Subkey [label="Subkey for key-blinding" shape="box"]
   Salt [label="Salt for blinding" shape="box"]
@@ -63,16 +64,16 @@ digraph {
   Public -> Blinded
   Subkey -> Blinded
   Salt -> Blinded
-  display_blinded_key [shape="diamond"]
-  Blinded -> display_blinded_key -> paper
-  paper [shape="box" label="Blinded key\nfingerprint\nand QR code"]
-  paper -> r_verify_identity [style="dashed"]
+  Blinded
 
   schedule_appointment, get_signature [shape="diamond"]
+  Identity -> get_signature
   Identity -> schedule_appointment
   schedule_appointment -> r_schedule_appointment
-  create -> calendar [style="dashed"]
-  schedule_appointment -> confirm_appointment -> get_signature -> display_blinded_key [style="dashed"]
+  create -> calendar [color="red"]
+  schedule_appointment -> confirm_appointment [color="red"]
+  r_verify_identity -> get_signature [color="red"]
+  confirm_appointment -> r_verify_identity [label="Meet with\nthe registrar." color="red"]
   get_signature -> r_issue_signature
   Identity -> confirm_appointment
   confirm_appointment [shape="diamond"]
