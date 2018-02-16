@@ -57,6 +57,7 @@ def create(registrar, identity, config=CONFIG, *, force=False):
         fp = p.open('w')
     dump(data, fp)
     fp.close()
+    keygen(config)
 
 def tally_hosts(*tally_hosts, config: Path=CONFIG):
     '''

@@ -20,12 +20,14 @@ digraph {
 
   create -> Identity
 
-  keygen [shape="diamond"]
+//keygen [shape="diamond"]
   Public [label="Poller public key" shape="box"]
   Private [label="Poller private key" shape="box"]
 
-  keygen -> Public
-  keygen -> Private
+//keygen -> Public
+//keygen -> Private
+  create -> Public
+  create -> Private
 
   calendar [shape="diamond"]
   Appointments [label="Available appointments" shape="box"]
@@ -43,7 +45,8 @@ digraph {
 
   schedule_appointment, get_signature [shape="diamond"]
   Identity -> schedule_appointment
-  Public  -> schedule_appointment -> r_schedule_appointment
+  Public  -> "???"
+  schedule_appointment -> r_schedule_appointment
   schedule_appointment -> confirm_appointment -> get_signature [style="dotted"]
   get_signature -> r_issue_signature
   Identity -> confirm_appointment
