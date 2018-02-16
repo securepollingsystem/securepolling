@@ -7,9 +7,11 @@ digraph {
     r_verify_identity [label="verify_identity"]
     r_check_eligibility [label="check_eligibility"]
     r_issue_signature [label="issue_signature"]
+    r_submit_blinded_key [label="submit_blinded_key"]
+    r_confirm_eligibility -> r_check_eligibility [style="dotted"]
     r_confirm_eligibility [label="confirm_eligibility" shape="diamond"]
-    r_schedule_appointment -> r_confirm_eligibility -> r_check_eligibility [constraint="false" style="dotted"]
-    r_verify_identity -> r_issue_signature [constraint="false"]
+    r_schedule_appointment -> r_confirm_eligibility -> r_verify_identity -> r_issue_signature [style="dotted"]
+    r_submit_blinded_key -> r_issue_signature [style="dotted"]
   }
 
   // Step 1
@@ -28,39 +30,32 @@ digraph {
   calendar [shape="diamond"]
   Appointments [label="Available appointments" shape="box"]
   calendar -> r_list_slots -> Appointments
-
   Appointments -> schedule_appointment [style="dotted"]
-  Identity -> r_schedule_appointment
-
-  CheckEligibility [label="check_eligibility" shape="diamond"]
-  r_check_eligibility -> CheckEligibility [style="dotted"]
-  Identity -> CheckEligibility -> Subkey
 
   Subkey [label="Subkey for key-blinding" shape="box"]
   Salt [label="Salt for blinding" shape="box"]
 
   Blinded [label="Poller Blinded key" shape="box"]
+  Private -> Blinded
   Subkey -> Blinded
   Salt -> Blinded
-  Public -> Blinded
 
-  schedule_appointment [shape="diamond"]
+  schedule_appointment, get_signature [shape="diamond"]
   Identity -> schedule_appointment
-  Blinded  -> schedule_appointment -> r_schedule_appointment
-  r_schedule_appointment -> confirm_appointment [style="dotted"]
+  Public  -> schedule_appointment -> r_schedule_appointment
+  schedule_appointment -> confirm_appointment -> get_signature [style="dotted"]
+  get_signature -> r_issue_signature
   Identity -> confirm_appointment
   confirm_appointment [shape="diamond"]
 
-  // Step 2
-  confirm_appointment -> r_verify_identity
-  Identity -> get_signature
-  get_signature [shape="diamond"]
-  get_signature -> r_issue_signature [style=dotted]
+  Blinded -> submit_blinded_key
+  submit_blinded_key -> r_submit_blinded_key
+
+  confirm_appointment -> r_check_eligibility -> Subkey
   r_issue_signature -> SignedBlinded
   SignedBlinded [label="Signature of blinded blob" shape="box"]
 
   Salt -> Unblinded
-  Subkey -> Unblinded
   SignedBlinded -> Unblinded
 
   Unblinded [shape="hexagon" label="Unblinded key"]

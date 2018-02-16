@@ -166,44 +166,28 @@ values (?, 0, ?)''', (identity, now()))
 def check_eligibility(db: Db, identity):
     '''
     Check that the identity's eligibility has been confirmed eligible.
+    If it has been, provide subkeys for blinded key submission.
+
+    :param identity: A unique string with information that the registrar will
+    use to verify user identity in person.
     '''
     logger.critical('TODO: checks')
     cur = db.cursor()
     count, = next(cur.execute(
         'select count(*) from identities where eligible = 1 and identity = ?', (identity,)))
     if count:
+        cur = db.cursor()
+        rows = list(cur.execute('select subkey from registrar where identity = ?', identity))
         yield 'Confirmed eligible'
+        yield 'Subkey: %s' % rows[0][0]
         for appointment in cur.execute('select start, stop from slots where identity = ?', (identity)):
             yield 'Scheduled for %s–%s'
     else:
         yield 'Not confirmed'
 
-def verify_identity(db: Db, identity):
-    '''
-    If the identity has not been submitted before, queue the identity for
-    confirmation. If it has been submitted but not verified, report the date of
-    submission. If it has been reviewed, report the result and, if confirmed,
-    subkeys for blinded key submission.
-
-    :param identity: A unique string with information that the registrar will
-    use to verify user identity in person.
-    '''
-    cur = db.cursor()
-    rows = list(cur.execute('select * from registrar where identity = ?', identity))
-    if rows:
-        (identity, submitted, signed, subkey), = rows
-        if signed:
-            return 'Confirmed on %s\nsubkey: %s' % (signed, subkey)
-        else:
-            return 'Submitted for review on %s' % submitted
-    else:
-        cur.execute('insert into registrar values (?, ?, null, \'\')', identity, now())
-    cur.commit()
-    cur.close()
-
 def issue_signature(db: Db, identity, registrar_key=None):
     '''
-    Record the identity and date, and sign the poller's blinded key (stored
+    If the identity has been confirmed, sign the poller's blinded key (stored
     already in the database) with the registar key.
     '''
     raise NotImplementedError
