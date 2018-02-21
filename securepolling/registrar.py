@@ -90,15 +90,6 @@ WHERE ((? < start) AND (start < ?))
                         (slot_start, slot_stop))
         cur.close()
 
-def appointment_availabilities(db: Db):
-    '''
-    List available appointment slots.
-    '''
-    cur = db.cursor()
-    sql = "select start, stop from slots where ? < start and identity = ''"
-    for start, stop in cur.execute(sql, now()):
-        yield '%s to %s' % (start, stop)
-
 def schedule_appointment(db: Db, identity, blinded_key, start_time: util.Datetime):
     '''
     Check that
@@ -177,11 +168,11 @@ def check_eligibility(db: Db, identity):
         'select count(*) from identities where eligible = 1 and identity = ?', (identity,)))
     if count:
         cur = db.cursor()
-        rows = list(cur.execute('select subkey from registrar where identity = ?', identity))
+        rows = list(cur.execute('select subkey from registrar where identity = ?', (identity,)))
         yield 'Confirmed eligible'
         yield 'Subkey: %s' % rows[0][0]
-        for appointment in cur.execute('select start, stop from slots where identity = ?', (identity)):
-            yield 'Scheduled for %s–%s'
+        for appointment in cur.execute('select start, stop from slots where identity = ?', (identity,)):
+            yield 'Scheduled for %s to %s' % appointment
     else:
         yield 'Not confirmed'
 
@@ -204,3 +195,6 @@ def issue_signature(db: Db, identity, registrar_key=None):
 
 
     logger.critical('TODO: checks')
+
+def verify_identity(*args):
+    raise NotImplementedError
