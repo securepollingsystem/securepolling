@@ -1,8 +1,15 @@
 Secure Polling
 ==============
-Reference implementation of the
+This is the reference implementation of the
 `Secure Polling System <https://securepollingsystem.org>`_ (SPS)
-architecture as command line and web utilities
+architecture as command line and web utilities.
+
+Usage
+-----
+See the `documentation <https://thomaslevine.com/scm/securepolling/uv/doc/_build/html/index.html>`_.
+
+Components
+----------
 
 sps_server
     Web versions of the three server components of the system, that is,
@@ -15,7 +22,6 @@ sps_local
     as paths to SQLite3 databases
 securepolling
     Shared Python library
-
 
 Some attacks
 ------------

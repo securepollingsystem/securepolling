@@ -1,0 +1,50 @@
+digraph {
+  // Registration data
+  unblinded [label="Unblinded key"]
+  public [label="Poller private key"]
+  private [label="Poller private key"]
+  registrar [label="Address of registrar"]
+  unblinded, public, private, registrar [shape="hexagon"]
+ 
+  // Other data
+  screed, tally_config, tally_cache [shape="box"]
+  screed [label="Screed"]
+  tally_config [label="List of tally hosts"]
+  tally_cache [label="Cache of tallies"]
+
+  // User interfaces
+  registration [shape="diamond" label="Registration procedure"]
+  tally_hosts, tally_pull, tally_list [shape="diamond"]
+  
+  // Registration
+  registration -> unblinded
+  registration -> private
+  registration -> public
+  registration -> registrar
+
+  // Screed
+  screed_add, screed_remove, screed_list, screed_upload [shape="diamond"]
+  screed_add -> screed
+  screed_remove -> screed
+  screed -> screed_list
+
+  registrar -> screed_upload
+  screed -> screed_upload
+  private -> signed_screed
+  screed -> signed_screed
+  signed_screed -> screed_upload
+  public -> screed_upload
+  unblinded -> screed_upload
+  screed_upload -> submit
+  subgraph cluster_screed_host {
+    label="Screed host"
+    submit
+  }
+
+  // Tally
+  tally_hosts -> tally_config -> tally_pull -> count -> tally_cache -> tally_list
+  subgraph cluster_tally {
+    label="Tally"
+    count
+  }
+}

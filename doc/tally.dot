@@ -1,0 +1,13 @@
+digraph {
+  subgraph cluster_screed_host {
+    label="Screed host"
+  }
+  query
+}
+
+tally [shape="box"]
+update, search, count [shape="diamond"]
+
+query -> update -> tally
+tally -> search
+tally -> count

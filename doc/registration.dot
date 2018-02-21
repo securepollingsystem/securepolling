@@ -43,8 +43,8 @@ digraph {
   create -> Identity
 
 //keygen [shape="diamond"]
-  Public [label="Poller public key" shape="box"]
-  Private [label="Poller private key" shape="box"]
+  Public [label="Poller public key"]
+  Private [label="Poller private key"]
 
 //keygen -> Public
 //keygen -> Private

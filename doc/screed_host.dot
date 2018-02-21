@@ -1,0 +1,16 @@
+digraph {
+  subgraph cluster_Pollee {
+    label="Pollee"
+    signed_screed [label="Signed screed:
+Registrar
+List of phrases
+Signature of list of phrases
+Public key
+Signature by registrar of public key", shape="box"], 
+  }
+  screed [label="Published screeds", shape="box"]
+  submit, query [shape="diamond"]
+
+  signed_screed -> submit -> screed
+  screed -> query
+}
