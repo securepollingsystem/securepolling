@@ -6,10 +6,7 @@ Secure Polling System
    :caption: Contents:
 
    registration
-   registrar
-   poller
-   screed_host
-   tally
+   components
 
 Indices and tables
 ==================

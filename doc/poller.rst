@@ -1,4 +1,0 @@
-Pollee
-======
-
-.. graphviz:: poller.dot

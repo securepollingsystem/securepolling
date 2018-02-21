@@ -1,4 +1,0 @@
-Tally
-=====
-
-.. graphviz:: tally.dot

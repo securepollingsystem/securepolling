@@ -6,7 +6,7 @@ Registrar
 List of phrases
 Signature of list of phrases
 Public key
-Signature by registrar of public key", shape="box"], 
+Signature by registrar of public key" shape="box"]
   }
   screed [label="Published screeds", shape="box"]
   submit, query [shape="diamond"]
