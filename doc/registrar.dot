@@ -1,0 +1,35 @@
+digraph {
+  // Interfaces
+  add_slots [shape="diamond"]
+  list_slots
+  schedule_appointment
+  verify_identity [shape="diamond"]
+  check_eligibility
+  issue_signature
+  submit_blinded_key
+  confirm_eligibility [shape="diamond"]
+
+  // Data
+  key, slots, identities, registrations [shape="box"]
+
+  // add_slots, list_slots
+  slots -> add_slots -> slots
+  slots -> list_slots
+
+  // schedule_appointment
+  slots -> schedule_appointment
+  registrations -> schedule_appointment -> registrations
+  schedule_appointment -> identities
+
+  // confirm_eligibility
+  confirm_eligibility -> identities
+
+  // check_eligibility
+  key -> check_eligibility
+  identities -> check_eligibility
+
+  // TODO
+  submit_blinded_key -> registrations
+  registrations -> verify_identity
+  registrations -> issue_signature
+}

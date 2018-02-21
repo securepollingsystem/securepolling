@@ -1,0 +1,4 @@
+Registrar
+=========
+
+.. graphviz:: registrar.dot

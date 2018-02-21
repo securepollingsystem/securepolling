@@ -25,7 +25,7 @@ cli(Program({
         registrar.verify_identity,
         registrar.check_eligibility,
         registrar.confirm_eligibility,
-        registrar.confirm_ineligibility,
+        registrar.submit_blinded_key,
         registrar.issue_signature,
         registrar.schedule_appointment,
     ],

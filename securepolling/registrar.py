@@ -133,26 +133,26 @@ confirm your eligibility beforehand.''' % start_time
         else:
             return 'The appointment at %s is not available.' % start_time
 
-def confirm_eligibility(db: Db, identity):
+def YesNo(x):
+    answers = {'yes': 1, 'no': 0}
+
+    y = x.lower()
+    if y in answers:
+        return answers[y]
+    else:
+        raise ValueError('Must be "yes" or "no"')
+
+def confirm_eligibility(db: Db, identity, eligible: YesNo):
     '''
     Confirm that a particular identity is eligible to poll.
+
+    :param eligible: "yes" (1) or "no" (0)
     '''
     with db:
         cur = db.cursor()
         cur.execute('''
 insert or replace into identities (identity, eligible, confirmed)
-values (?, 1, ?)''', (identity, now()))
-
-def confirm_ineligibility(db: Db, identity):
-    '''
-    Confirm that a particular identity is eligible to poll.
-    '''
-    with db:
-        cur = db.cursor()
-        cur.execute('''
-insert or replace into identities
-(identity, eligible, confirmed)
-values (?, 0, ?)''', (identity, now()))
+values (?, ?, ?)''', (identity, eligible, now()))
 
 def check_eligibility(db: Db, identity):
     '''
@@ -197,4 +197,7 @@ def issue_signature(db: Db, identity, registrar_key=None):
     logger.critical('TODO: checks')
 
 def verify_identity(*args):
+    raise NotImplementedError
+
+def submit_blinded_key(*args):
     raise NotImplementedError

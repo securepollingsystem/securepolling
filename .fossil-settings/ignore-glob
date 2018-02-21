@@ -1,2 +1,3 @@
 *.png
 *.pyc
+doc/_build

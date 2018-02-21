@@ -1,0 +1,4 @@
+Registration
+============
+
+.. graphviz:: registration.dot
