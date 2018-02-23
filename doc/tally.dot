@@ -3,10 +3,9 @@ digraph {
     label="Screed host"
     query
   }
-  tally [shape="box"]
+  tally, last_time [shape="box"]
   update, search, count [shape="diamond"]
-  
-  update -> query -> tally
+  tally -> last_time -> update -> query -> tally
   tally -> search
   tally -> count
 }

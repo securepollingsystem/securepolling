@@ -48,22 +48,21 @@ def submit(db: _db, signed_screed):
     values = (s['registrar'], s['public_key'], dumps(s['phrases']))
     db.execute('insert or replace into screed values (?, ?, ?)', values)
 
-def query(db: _db, registrar, start_time=None, public_key=None):
+def query(db: _db, registrar, start_time=None):
     '''
     Query for new information.
 
     :param db: database file
     :param registrar: the registrar's server URL
     :param start_time: get data from this date on (useful for getting only updates)
-    :param public_key: Public key prefix
     '''
     sql = '''\
 SELECT pollee, submitted, phrases
 FROM screed
 WHERE registrar = ?
-  AND %d <= submitted AND public_key LIKE '%s%%'
+  AND %d <= submitted
 ORDER BY submitted
-''' % (start_time or '', public_key or '')
+    ''' % (start_time or '')
     cur = db.cursor()
     for pollee, submitted, phrases in cur.execute(sql, registrar):
         yield {

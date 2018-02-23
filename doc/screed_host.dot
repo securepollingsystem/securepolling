@@ -8,9 +8,14 @@ Signature of list of phrases
 Public key
 Signature by registrar of public key" shape="box"]
   }
+  subgraph cluster_Tally {
+    label="Tally"
+    start_time [shape="box"]
+  }
   screed [label="Published screeds", shape="box"]
   submit, query [shape="diamond"]
 
   signed_screed -> submit -> screed
   screed -> query
+  start_time -> query
 }
