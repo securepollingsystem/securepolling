@@ -1,13 +1,13 @@
 digraph {
   // Registration data
-  unblinded [label="Unblinded key"]
-  public [label="Poller private key"]
+  unblinded [label="Unblinded signature"]
+  public [label="Poller public key"]
   private [label="Poller private key"]
   registrar [label="Address of registrar"]
   unblinded, public, private, registrar [shape="hexagon"]
  
   // Other data
-  screed, tally_config, tally_cache [shape="box"]
+  screed, signed_screed, tally_config, tally_cache [shape="box"]
   screed [label="Screed"]
   tally_config [label="List of tally hosts"]
   tally_cache [label="Cache of tallies"]
