@@ -12,10 +12,10 @@ def _db(path):
     cur.execute('''
 CREATE TABLE IF NOT EXISTS screed (
   registrar text not null,
-  poller text not null,
+  pollee text not null,
   submitted datetime,
   phrases blob,
-  primary key (registrar, poller)
+  primary key (registrar, pollee)
 );''')
     cur.close()
     return con
@@ -42,7 +42,7 @@ def submit(db: _db, signed_screed):
     registrar from the registrar.
     
     If it is valid, upsert it keyed by the registrar and the public key of the
-    poller. Include the current timestamp too.
+    pollee. Include the current timestamp too.
     '''
     s = util.signed_screed.loads(signed_screed)
     values = (s['registrar'], s['public_key'], dumps(s['phrases']))
@@ -58,16 +58,16 @@ def query(db: _db, registrar, start_time=None, public_key=None):
     :param public_key: Public key prefix
     '''
     sql = '''\
-SELECT poller, submitted, phrases
+SELECT pollee, submitted, phrases
 FROM screed
 WHERE registrar = ?
   AND %d <= submitted AND public_key LIKE '%s%%'
 ORDER BY submitted
 ''' % (start_time or '', public_key or '')
     cur = db.cursor()
-    for poller, submitted, phrases in cur.execute(sql, registrar):
+    for pollee, submitted, phrases in cur.execute(sql, registrar):
         yield {
-            'poller': poller,
+            'pollee': pollee,
             'submitted': submitted,
             'phrases': loads(phrases),
         }

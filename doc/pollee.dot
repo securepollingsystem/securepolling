@@ -1,8 +1,8 @@
 digraph {
   // Registration data
   unblinded [label="Unblinded signature"]
-  public [label="Poller public key"]
-  private [label="Poller private key"]
+  public [label="Pollee public key"]
+  private [label="Pollee private key"]
   registrar [label="Address of registrar"]
   unblinded, public, private, registrar [shape="hexagon"]
  

@@ -178,7 +178,7 @@ def check_eligibility(db: Db, identity):
 
 def issue_signature(db: Db, identity, registrar_key=None):
     '''
-    If the identity has been confirmed, sign the poller's blinded key (stored
+    If the identity has been confirmed, sign the pollee's blinded key (stored
     already in the database) with the registar key.
     '''
     raise NotImplementedError

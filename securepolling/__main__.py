@@ -1,23 +1,23 @@
 from horetu import cli, Program
-from . import screed_host, tally, poller, registrar
+from . import screed_host, tally, pollee, registrar
 
 cli(Program({
-    'poller': [
-        poller.create,
-        poller.keygen,
-        poller.calendar,
-        poller.schedule_appointment, # 1
-        poller.confirm_appointment,  # 2
-        poller.get_signature,        # 3
+    'pollee': [
+        pollee.create,
+        pollee.keygen,
+        pollee.calendar,
+        pollee.schedule_appointment, # 1
+        pollee.confirm_appointment,  # 2
+        pollee.get_signature,        # 3
 
-        poller.screed_add,
-        poller.screed_remove,
-        poller.screed_list,
-        poller.screed_upload,
+        pollee.screed_add,
+        pollee.screed_remove,
+        pollee.screed_list,
+        pollee.screed_upload,
 
-        poller.tally_hosts,
-        poller.tally_pull,
-        poller.tally_list,
+        pollee.tally_hosts,
+        pollee.tally_pull,
+        pollee.tally_list,
     ],
     'registrar': [
         registrar.add_slot,

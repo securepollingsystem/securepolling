@@ -5,7 +5,7 @@ Solid
 Dotted
   Data dependencies that are stored in the registrar's database
 Red
-  Steps of the human-facing poller procedure
+  Steps of the human-facing pollee procedure
 
 Diamond
   User interface
@@ -14,7 +14,7 @@ Ellipse
 Box
   Datum
 Hexagon
-  Output datum for the other poller features (screed and tally)
+  Output datum for the other pollee features (screed and tally)
 
 */
 
@@ -43,8 +43,8 @@ digraph {
   create -> Identity
 
 //keygen [shape="diamond"]
-  Public [label="Poller public key"]
-  Private [label="Poller private key"]
+  Public [label="Pollee public key"]
+  Private [label="Pollee private key"]
 
 //keygen -> Public
 //keygen -> Private
@@ -60,7 +60,7 @@ digraph {
   Subkey [label="Subkey for key-blinding" shape="box"]
   Salt [label="Salt for blinding" shape="box"]
 
-  Blinded [label="Poller Blinded key" shape="box"]
+  Blinded [label="Pollee Blinded key" shape="box"]
   Public -> Blinded
   Subkey -> Blinded
   Salt -> Blinded

@@ -6,7 +6,7 @@ Pollee
 
 .. graphviz:: registration.dot
 
-.. graphviz:: poller.dot
+.. graphviz:: pollee.dot
 
 Registrar
 ---------
