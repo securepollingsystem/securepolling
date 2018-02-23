@@ -1,4 +1,13 @@
 digraph {
+/*
+  poller [shape="hexagon"]
+  poller -> list_slots -> poller
+  poller -> schedule_appointment -> poller
+  poller -> submit_blinded_key
+  check_eligibility -> poller
+  issue_signature -> poller
+*/
+
   // Interfaces
   add_slots [shape="diamond"]
   list_slots
@@ -10,7 +19,7 @@ digraph {
   confirm_eligibility [shape="diamond"]
 
   // Data
-  key, slots, identities, registrations [shape="box"]
+  key, slots, identities, pollee_keys [shape="box"]
 
   // add_slots, list_slots
   slots -> add_slots -> slots
@@ -18,7 +27,7 @@ digraph {
 
   // schedule_appointment
   slots -> schedule_appointment
-  registrations -> schedule_appointment -> registrations
+  pollee_keys -> schedule_appointment -> pollee_keys
   schedule_appointment -> identities
 
   // confirm_eligibility
@@ -29,7 +38,8 @@ digraph {
   identities -> check_eligibility
 
   // TODO
-  submit_blinded_key -> registrations
-  registrations -> verify_identity
-  registrations -> issue_signature
+  submit_blinded_key -> pollee_keys
+  pollee_keys -> verify_identity
+  verify_identity -> identities
+  pollee_keys -> issue_signature
 }
