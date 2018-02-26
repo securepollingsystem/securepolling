@@ -1,5 +1,5 @@
 DOC_FORMAT = html
-.PHONY: doc sync
+.PHONY: doc sync push git-remote
 
 doc:
 	cd doc && gmake ${DOC_FORMAT}
@@ -8,3 +8,9 @@ sync:
 	fossil uv sync
 	fossil configuration sync all
 	fossil push
+push:
+	fossil export --git | git fast-import
+	git push
+git-remote:
+	git remote add origin git@github.com:securepollingsystem/securepolling
+	git push -u origin trunk
