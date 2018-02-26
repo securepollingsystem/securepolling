@@ -31,7 +31,7 @@ digraph {
     r_confirm_eligibility -> r_check_eligibility [style="dotted"]
     r_confirm_eligibility [label="confirm_eligibility" shape="diamond"]
     r_schedule_appointment -> r_confirm_eligibility -> r_verify_identity -> r_issue_signature [style="dotted"]
-    r_submit_blinded_key -> r_verify_identity [style="dotted" constraint="false"]
+    r_submit_blinded_key -> r_verify_identity [style="dotted"]
     r_submit_blinded_key -> r_issue_signature [style="dotted"]
     r_key [shape="box" label="Registrar key"]
   }
@@ -69,7 +69,7 @@ digraph {
   schedule_appointment, get_signature [shape="diamond"]
   Identity -> get_signature
   Identity -> schedule_appointment
-  schedule_appointment -> r_schedule_appointment
+  schedule_appointment -> r_schedule_appointment -> Subkey
   create -> calendar [color="red"]
   schedule_appointment -> confirm_appointment [color="red"]
   r_verify_identity -> get_signature [color="red"]
@@ -81,7 +81,7 @@ digraph {
   Blinded -> r_submit_blinded_key
 
   r_key -> r_check_eligibility
-  confirm_appointment -> r_check_eligibility -> Subkey
+  confirm_appointment -> r_check_eligibility
   r_issue_signature -> SignedBlinded
   SignedBlinded [label="Signature of blinded blob" shape="box"]
 

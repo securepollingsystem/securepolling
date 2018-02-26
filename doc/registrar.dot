@@ -19,7 +19,11 @@ digraph {
   confirm_eligibility [shape="diamond"]
 
   // Data
-  key, slots, identities, pollee_keys [shape="box"]
+  registrar_key, slots [shape="box"]
+  subgraph cluster_identities {
+    label="indexed by identity"
+    eligible, confirmed, blinded_key, blinded_key, submitted, subkey [shape="box"]
+  }
 
   // add_slots, list_slots
   slots -> add_slots -> slots
@@ -27,19 +31,20 @@ digraph {
 
   // schedule_appointment
   slots -> schedule_appointment
-  pollee_keys -> schedule_appointment -> pollee_keys
   schedule_appointment -> identities
+  pollee_keys -> schedule_appointment [style="dotted"]
+  schedule_appointment -> pollee_keys
 
   // confirm_eligibility
   confirm_eligibility -> identities
 
   // check_eligibility
-  key -> check_eligibility
+  registrar_key -> check_eligibility
   identities -> check_eligibility
 
   // TODO
-  submit_blinded_key -> pollee_keys
-  pollee_keys -> verify_identity
-  verify_identity -> identities
-  pollee_keys -> issue_signature
+    submit_blinded_key -> pollee_keys
+    pollee_keys -> verify_identity
+    identities -> verify_identity -> identities
+    pollee_keys -> issue_signature
 }
